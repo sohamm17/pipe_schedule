@@ -1,5 +1,7 @@
 '''
 The Boomerang Scheduler Simulation
+-
+Find an optimized alpha value of each taskset. The alpha is dynamically chosen for each taskset.
 '''
 
 import task_generator as task_gen
@@ -97,7 +99,7 @@ def main():
     min_period = 100
     max_period = 1000
 
-    total_util = 0.55
+    total_util = 0.80
 
     e2e_delay_factor = 1
     alpha = 1.2
@@ -143,7 +145,7 @@ def main():
         print ("Second Stage", taskset, get_total_util(taskset))
 
         #Step 2
-        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay)
+        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha = 1.3)
 
         if opt_alpha == 2:
             second_schedl += 1
@@ -156,6 +158,8 @@ def main():
     print ("second schedulable: {}/{}".format(second_schedl, no_tasksets))
 
     print ("third schedulable: {}/{}".format(third_schedl, no_tasksets))
+
+    print ("Unschedulable: {}/{}".format((no_tasksets - first_schedl - second_schedl - third_schedl), no_tasksets))
 
 if __name__ == "__main__":
     main()
