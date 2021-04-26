@@ -1,7 +1,6 @@
 '''
 The Boomerang Scheduler Simulation
--
-Find an optimized alpha value of each taskset. The alpha is dynamically chosen for each taskset.
+In this one, I try Stage 2 one pipe only once and apply sequentially from first producer to last consumer and then come back again.
 '''
 
 import task_generator as task_gen
@@ -27,38 +26,48 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
 
         is_second_stage_sched = False
 
-        for i in range(0, len(taskset) - 1):
-            producer = taskset[i]
-            consumer = taskset[i + 1]
+        # the following variable keeps track of whether at least one pipe was changed.
+        at_least_one_pipe_changed = False
 
-            print ("Iter ", i, taskset)
-            taskset2 = copy.deepcopy(taskset)
+        while True:
+            for i in range(0, len(taskset) - 1):
+                producer = taskset[i]
+                consumer = taskset[i + 1]
 
-            while producer[0] < producer[1] and consumer[0] < consumer[1]:
-                # period of the producer is halved
-                producer = (producer[0], producer[1] // 2)
-                # budget of the consumer is doubled
-                consumer = (consumer[0] * 2, consumer[1])
-                taskset2[i] = producer
-                taskset2[i + 1] = consumer
+                print ("Iter ", i, taskset)
+                taskset2 = copy.deepcopy(taskset)
 
-                if utilization_bound_test(taskset2):
-                    taskset = copy.deepcopy(taskset2)
-                else:
-                    break
+                if producer[0] < producer[1] and consumer[0] < consumer[1]:
+                    # period of the producer is halved
+                    producer = (producer[0], producer[1] // 2)
+                    # budget of the consumer is doubled
+                    consumer = (consumer[0] * 2, consumer[1])
+                    taskset2[i] = producer
+                    taskset2[i + 1] = consumer
 
-                print (taskset, get_total_util(taskset))
+                    if utilization_bound_test(taskset2):
+                        taskset = copy.deepcopy(taskset2)
+                    else:
+                        break
 
-                if end_to_end_delay(taskset) <= e2e_delay:
-                    # print ("Under e2e_delay threshold")
-                    # print (taskset)
-                    schedulable = True
-                    is_second_stage_sched = True
-                    return 2 # Second stage Schedulable
+                    at_least_one_pipe_changed = True
 
+                    print (taskset, get_total_util(taskset))
+
+                    if end_to_end_delay(taskset) <= e2e_delay:
+                        # print ("Under e2e_delay threshold")
+                        # print (taskset)
+                        schedulable = True
+                        is_second_stage_sched = True
+                        return 2 # Second stage Schedulable
             # if it is already schedulable do not tune another task
             if is_second_stage_sched:
                 break
+            elif not at_least_one_pipe_changed:
+                break
+            elif at_least_one_pipe_changed:
+                #change back the value to false
+                at_least_one_pipe_changed = False
 
         if is_second_stage_sched:
             break

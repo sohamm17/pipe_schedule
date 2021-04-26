@@ -1,5 +1,7 @@
 '''
 The Boomerang Scheduler Simulation
+- Start with a fixed alpha and decrease the value of alpha in steps to find an optimized value of alpha.
+A single alpha value is used for all the randomly generated tasksets.
 '''
 
 import task_generator as task_gen
