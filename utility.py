@@ -13,6 +13,13 @@ def end_to_end_delay(pipeline):
     return sum([x[1] for x in pipeline])
 
 """
+returns RMS bound limit for a value of N
+"""
+def rms_bound(n):
+  return 1
+  # return (no_tasks * (pow(2, 1.0 / no_tasks) - 1))
+
+"""
 This is utilization bound test for RMS
 """
 def utilization_bound_test(tasks):

@@ -47,12 +47,8 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
 
                     if utilization_bound_test(taskset2):
                         taskset = copy.deepcopy(taskset2)
-                    else:
-                        break
-
-                    at_least_one_pipe_changed = True
-
-                    print (taskset, get_total_util(taskset))
+                        at_least_one_pipe_changed = True
+                        print (taskset, get_total_util(taskset))
 
                     if end_to_end_delay(taskset) <= e2e_delay:
                         # print ("Under e2e_delay threshold")
@@ -154,7 +150,7 @@ def main():
         print ("Second Stage", taskset, get_total_util(taskset))
 
         #Step 2
-        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha = 3)
+        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha = 1.3)
 
         if opt_alpha == 2:
             second_schedl += 1

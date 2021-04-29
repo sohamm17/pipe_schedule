@@ -39,8 +39,8 @@ def main():
     ax.legend(loc='upper left', bbox_to_anchor=(0.25, 1.02), prop={'size': 14})
     plt.grid()
     plt.tight_layout()
-    # plt.show()
-    plt.savefig("starting_alpha.pdf")
+    plt.show()
+    # plt.savefig("starting_alpha.pdf")
 
 
 if __name__ == "__main__":
