@@ -1,5 +1,7 @@
 '''
-The Boomerang Scheduler Simulation - Exact Boomerang version
+The Boomerang Scheduler Simulation
+
+I derive an alpha value from mathematical equation
 '''
 
 import task_generator as task_gen
@@ -20,7 +22,7 @@ def main():
     min_period = 100
     max_period = 1000
 
-    total_util = 0.65
+    total_util = 0.75
 
     e2e_delay_factor = 1
     alpha = 1.1
@@ -48,13 +50,13 @@ def main():
         budgets = [x[0] for x in single_set]
         periods = [x[1] for x in single_set]
 
-        e2e_delay = sum(periods) * e2e_delay_factor
+        e2e_delay = int(sum(periods) * float(e2e_delay_factor))
 
         equal_period = e2e_delay // no_tasks
         for b in budgets:
             if b > equal_period:
                 print ("Not schedulable: ", single_set, equal_period)
-                sys.exit(0)
+                # sys.exit(0)
 
         #Step 1
         taskset = [(b, equal_period) for b in budgets]
@@ -63,12 +65,26 @@ def main():
             first_schedl += 1
             continue
 
+        print ("e2e delay threshold=", e2e_delay)
         print ("Second Stage", taskset, get_total_util(taskset))
+        print ("Budget sum / e2edelay = ", (float(sum(budgets))/float(e2e_delay)))
+
+        alpha = float(sum(budgets)) / (float(e2e_delay) * ((pow(2, 1.0 / len(taskset)) - 1 - 0.01)))
+
+        print ("Sum of budgets=", sum(budgets))
+        print ("Derived Alpha = ", alpha)
 
         #Step 2
         increased_period = int(alpha * equal_period)
 
         taskset = [(b, increased_period) for b in budgets]
+        print ("Special Alpha ", taskset)
+        print ("e2e delay: ", end_to_end_delay(taskset))
+
+        if utilization_bound_test(taskset) and end_to_end_delay(taskset) <= e2e_delay:
+            print ("Found a special alpha")
+            second_schedl += 1
+            continue
 
         #Step 3
         is_second_stage_sched = False
@@ -131,6 +147,7 @@ def main():
                 # print ("Schedulable and under threshold")
                 # print (taskset)
                 third_schedl += 1
+                print ("Third stage scheduled: ", taskset)
                 break
 
             print (taskset)
@@ -143,6 +160,8 @@ def main():
     print ("second schedulable: {}/{}".format(second_schedl, no_tasksets))
 
     print ("third schedulable: {}/{}".format(third_schedl, no_tasksets))
+
+    print ("Unschedulable: {}/{}".format((no_tasksets - first_schedl - second_schedl - third_schedl), no_tasksets))
 
 if __name__ == "__main__":
     main()

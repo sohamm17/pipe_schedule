@@ -16,8 +16,7 @@ def end_to_end_delay(pipeline):
 returns RMS bound limit for a value of N
 """
 def rms_bound(n):
-  return 1
-  # return (no_tasks * (pow(2, 1.0 / no_tasks) - 1))
+  return int(100 * n * (pow(2, 1.0 / n) - 1))
 
 """
 This is utilization bound test for RMS
