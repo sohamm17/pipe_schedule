@@ -150,7 +150,7 @@ def main():
         print ("Second Stage", taskset, get_total_util(taskset))
 
         #Step 2
-        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha = 1.3)
+        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha = 2)
 
         if opt_alpha == 2:
             second_schedl += 1
