@@ -1,6 +1,8 @@
 '''
 The Boomerang Scheduler Simulation
 In this one, I try Stage 2 one pipe only once and apply sequentially from first producer to last consumer and then come back again.
+
+-- This is more optimized version to make tasksets harmonic
 '''
 
 import task_generator as task_gen
@@ -92,8 +94,14 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
                 print (taskset, end_to_end_delay_durr(taskset), 100 * get_total_util(taskset))
                 schedulable = True
                 return 3
+        # Making taskset harmonic
+        print ("Unsched ", taskset)
+        harm_taskset = make_taskset_harmonic(taskset)
+        print ("Harm ", new_taskset)
+        if utilization_bound_test(taskset) and end_to_end_delay_durr(taskset) <= e2e_delay:
+            print ("Schedulable and under Threshold")
+            return 3
 
-            # print (taskset)
         alpha = alpha - step
 
     return 0

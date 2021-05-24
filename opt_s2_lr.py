@@ -13,6 +13,10 @@ from utility import *
 from pipeline import *
 import copy
 
+Loss_Rate = 75 # In Percentage
+Loss_UB = float(Loss_Rate) / 100
+
+
 def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7):
     alpha = starting_alpha
     step = 0.01
@@ -56,7 +60,10 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
                             is_second_stage_sched = True
                             print ("Second Stage Sched, E2E: ", end_to_end_delay_durr(taskset))
                             print (taskset)
-                            return 2 # Second stage Schedulable
+                            if(loss_rate_ub(taskset) <= Loss_UB):
+                                return 2 # Second stage Schedulable
+                            else:
+                                return 0
             # if it is already schedulable do not tune another task
             if is_second_stage_sched:
                 break
@@ -91,7 +98,13 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
                 print ("Third Stage Schedulable and under threshold")
                 print (taskset, end_to_end_delay_durr(taskset), 100 * get_total_util(taskset))
                 schedulable = True
-                return 3
+                cur_loss_rate = loss_rate_ub(taskset)
+                print ("LR: ", cur_loss_rate * 100)
+                # sys.exit(1)
+                if(cur_loss_rate <= Loss_UB):
+                    return 3
+                else:
+                    return 0
 
             # print (taskset)
         alpha = alpha - step
@@ -107,7 +120,7 @@ def main():
 
     total_util = 0.75
 
-    e2e_delay_factor = 14
+    e2e_delay_factor = 18
     alpha = 1.2
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
@@ -148,8 +161,9 @@ def main():
         taskset = [(b, equal_period) for b in budgets]
 
         if utilization_bound_test(taskset) and end_to_end_delay_durr(taskset) <= e2e_delay_ub:
-            first_schedl += 1
-            continue
+            if(loss_rate_ub(taskset) <= Loss_UB):
+                first_schedl += 1
+                continue
 
         # print ("Second Stage", taskset, get_total_util(taskset))
 
@@ -180,7 +194,7 @@ def main():
 
     print ("Unschedulable: {}/{}".format((no_tasksets - first_schedl - second_schedl - third_schedl), no_tasksets))
 
-    print ("E2E Factor:", e2e_delay_factor)
+    print ("Loss Rate: ", Loss_Rate, "E2E Factor:", e2e_delay_factor)
 
 if __name__ == "__main__":
     main()

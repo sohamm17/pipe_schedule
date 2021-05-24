@@ -74,7 +74,7 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
             initial_budget = int(single_set[i][0])
             print (cur_budget, cur_period, initial_budget)
 
-            while cur_budget < cur_period and cur_budget > initial_budget:
+            while cur_budget < cur_period and cur_budget >= initial_budget:
                 cur_budget = cur_budget // 2
                 cur_period = cur_period // 2
                 # print ("Halved budget and period")
