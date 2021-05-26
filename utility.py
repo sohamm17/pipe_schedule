@@ -103,19 +103,15 @@ def is_harmonic_periods(periods):
 
     for p in periods:
         for x in periods:
-            if p % x != 0:
+            smaller = min(p, x)
+            greater = max(p, x)
+            if greater % smaller != 0:
+                # print (p, x)
                 return False
     return True
 
-def utilization_bound_gekko(tasks, m):
+def utilization_bound_gekko(tasks, m, periods):
     total_util = get_total_util (tasks)
-    # periods = [x[1] for x in tasks]
-    # smallest = tasks[0][1]
-    # for i in range(1, len(tasks)):
-    #     smallest = m.min3(smallest, tasks[i][1])
-    #
-    # is_harmonic_gekko(periods, smallest, m)
-    # print ("smallest ", smallest)
 
     no_tasks = len(tasks)
     bound = no_tasks * (pow(2, 1.0 / no_tasks) - 1)
@@ -140,21 +136,23 @@ def utilization_bound_test(tasks):
 
     no_tasks = len(tasks)
     bound = no_tasks * (pow(2, 1.0 / no_tasks) - 1)
-    return total_util <= bound
+    return total_util <= 0.69
 
 """
 This function makes taskset harmonic
 """
 def make_taskset_harmonic(taskset):
     periods = [x[1] for x in taskset]
-    budgets = [x[1] for x in taskset]
+    budgets = [x[0] for x in taskset]
     smallest_period = min(periods)
+    # print (smallest_period)
     i = 0
     new_taskset = []
     for p in periods:
         if p % smallest_period != 0:
-            k = p / smallest_period
+            k = p // smallest_period
             periods[i] = k * smallest_period
-        i += 1
         new_taskset.append((budgets[i], periods[i]))
+        i += 1
+
     return new_taskset

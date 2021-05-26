@@ -1,17 +1,16 @@
 import task_generator as task_gen
-from ortools.sat.python import cp_model
+from ortools.linear_solver import pywraplp
 from utility import *
 import os, pickle
 
-def create_model(budgets, e2e_delay_threshold):
+def create_solver(budgets, e2e_delay_threshold):
     no_tasks = len(budgets)
 
-    m = cp_model.CpModel()
+    solver = pywraplp.Solver.CreateSolver('GLOP')
+    infinity = solver.infinity()
 
     periods = []
     divisions = []
-    # division equality is rounded towards zero.
-    # So this adds an offset 1 to the previous variable
     divisions_adjusted = []
 
     prios = [] # For the calculation of relative priority among tasks
@@ -19,41 +18,33 @@ def create_model(budgets, e2e_delay_threshold):
     e2e_delay = []
 
     for i in range(no_tasks):
-        e2e_delay.append(m.NewIntVar(0, e2e_delay_threshold, "e2e_delay" + str(i)))
+        e2e_delay.append(solver.IntVar(0, e2e_delay_threshold, "e2e_delay" + str(i)))
 
-        periods.append(m.NewIntVar(budgets[i] + 1, budgets[i] * 100, 'periods' + str(i)))
+        periods.append(solver.IntVar(budgets[i] + 1, budgets[i] * 99, 'periods' + str(i)))
 
-        divisions.append(m.NewIntVar(1, 100000, 'utils' + str(i)))
+        divisions.append(solver.IntVar(0, 1000000.0, 'utils' + str(i)))
+        # divisions_adjusted.append(m.NewIntVar(0, 1000000.0, 'utils_adjusted' + str(i)))
 
-        prios.append(m.NewBoolVar('pri' + str(i)))
+        prios.append(solver.BoolVar('pri' + str(i)))
 
-        m.AddDivisionEquality(divisions[i], budgets[i] * 1000000, periods[i])
-        # adjusted because the previous division rounds towards zero
-        # m.Add(divisions_adjusted[i] == divisions[i] + 1)
+        # solver.AddDivisionEquality(divisions[i], budgets[i] * 1000000, periods[i])
 
-        # start adding from 1 to last task for the previous task
         if i > 0:
             # if next period is small, then next is higher priorty;
-            m.Add(periods[i] < periods[i - 1]).OnlyEnforceIf(prios[i - 1])
-            m.Add(periods[i] >= periods[i - 1]).OnlyEnforceIf(prios[i - 1].Not())
+            solver.Add(periods[i] < periods[i - 1]).OnlyEnforceIf(prios[i - 1])
+            solver.Add(periods[i] >= periods[i - 1]).OnlyEnforceIf(prios[i - 1].Not())
 
-            m.Add(e2e_delay[i] == e2e_delay[i - 1] + periods[i] + periods[i - 1]).OnlyEnforceIf(prios[i - 1])
-            m.Add(e2e_delay[i] == e2e_delay[i - 1] +  periods[i]).OnlyEnforceIf(prios[i - 1].Not())
-            # m.AddImplication(periods[i] < periods[i - 1], prios[i - 1])
-            # m.AddImplication(periods[i] >= periods[i - 1], prios[i - 1].Not())
-            # m.AddImplication(prios[i - 1].Not(), e2e_delay[i] == periods[i])
-            # m.AddImplication(prios[i - 1], e2e_delay[i] == periods[i] + periods[i - 1])
+            solver.Add(e2e_delay[i] == e2e_delay[i - 1] + periods[i] + periods[i - 1]).OnlyEnforceIf(prios[i - 1])
+            solver.Add(e2e_delay[i] == e2e_delay[i - 1] +  periods[i]).OnlyEnforceIf(prios[i - 1].Not())
         else:
-            m.Add(e2e_delay[i] == periods[i])
+            solver.Add(e2e_delay[i] == periods[i])
 
-    # total_util = m.NewIntVar(10, 717734, "total")
-    total_util = m.NewIntVar(10, 15000000, "total")
+    # solver.AddLinearConstraint(sum(divisions), 10, 717734)
+    solver.AddLinearConstraint(e2e_delay[no_tasks - 1] + periods[no_tasks - 1], sum(budgets), e2e_delay_threshold)
 
-    m.Add(total_util == sum(divisions))
-    # m.Minimize(e2e_delay[no_tasks - 1] + periods[no_tasks - 1])
-    m.Minimize(total_util)
+    solver.Minimize(e2e_delay[no_tasks - 1] + periods[no_tasks - 1])
 
-    return m, periods, divisions
+    return solver
 
 def main():
     no_tasks = 10
@@ -90,13 +81,11 @@ def main():
         e2e_delay_threshold = int(sum(budgets) * e2e_delay_factor)
         print ("E2E Threshold = ", e2e_delay_threshold)
 
-        M, periods, divisions = create_model(budgets, e2e_delay_threshold)
-        solver = cp_model.CpSolver()
-        solver.parameters.max_time_in_seconds = 5.0
-        status = solver.Solve(M)
+        solver = create_solver(budgets, e2e_delay_threshold)
+        status = solver.Solve()
         print ("Solution: {}".format(status))
         if status == cp_model.OPTIMAL:
-            print ("Optimal solution found. E2E Delay: {}.".format(solver.ObjectiveValue()))
+            print ("Optimal solution found. E2E Delay: {}.".format(solver.Objective().Value()))
             schedulable += 1
         elif status == cp_model.FEASIBLE:
             print ("Feasible solution found.")

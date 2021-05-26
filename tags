@@ -1,0 +1,144 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.9~svn20110310	//
+FFD_FIT	./multi_pipeline.py	/^def FFD_FIT(pipeline):$/;"	f
+GEKKO	./pipeline.py	/^GEKKO = 0$/;"	v
+GetPipelineBudgets	./pipeline.py	/^def GetPipelineBudgets(no_pipelines, no_tasks, seed):$/;"	f
+ID	./multi_pipeline.py	/^ID = 0$/;"	v
+Loss_Rate	./ilp/ilp_gekko.py	/^Loss_Rate = 50 # In Percentage$/;"	v
+Loss_Rate	./opt_s2_lr.py	/^Loss_Rate = 50 # In Percentage$/;"	v
+Loss_UB	./ilp/ilp_gekko.py	/^Loss_UB = float(Loss_Rate) \/ 100$/;"	v
+Loss_UB	./opt_s2_lr.py	/^Loss_UB = float(Loss_Rate) \/ 100$/;"	v
+MAX_E2E_FACTOR	./multi_pipeline.py	/^MAX_E2E_FACTOR = 8$/;"	v
+MAX_LOSS_FACTOR	./multi_pipeline.py	/^MAX_LOSS_FACTOR = 80$/;"	v
+MIN_E2E_FACTOR	./multi_pipeline.py	/^MIN_E2E_FACTOR = 6$/;"	v
+MIN_LOSS_FACTOR	./multi_pipeline.py	/^MIN_LOSS_FACTOR = 50$/;"	v
+PIPELINE_ID	./multi_pipeline.py	/^PIPELINE_ID = 0$/;"	v
+StaffordRandFixedSum	./task_generator.py	/^def StaffordRandFixedSum(n, u, nsets):$/;"	f
+UUniFastDiscard	./task_generator.py	/^def UUniFastDiscard(n, u, nsets):$/;"	f
+WFD_FIT	./multi_pipeline.py	/^def WFD_FIT(pipeline):$/;"	f
+adjust_existing_pipeline	./multi_pipeline.py	/^def adjust_existing_pipeline(heur_reject=True):$/;"	f
+check_e2e	./ilp/ilp_pyomo.py	/^def check_e2e(model):$/;"	f
+core_assign_to_task	./multi_pipeline.py	/^def core_assign_to_task(task, core_no):$/;"	f
+core_avl_util	./multi_pipeline.py	/^core_avl_util = [(0, 0.69), (1, 0.69), (2, 0.69), (3, 0.69), (4, 0.69), (5, 0.69), (6, 0.69), (7, 0.69)]$/;"	v
+core_utilization	./multi_pipeline.py	/^def core_utilization(core_no):$/;"	f
+create_model	./ilp/ilp_sched.py	/^def create_model(budgets, e2e_delay_threshold):$/;"	f
+create_solver	./ilp/ilp_or_mip.py	/^def create_solver(budgets, e2e_delay_threshold):$/;"	f
+e2e_constraint	./ilp/ilp_ipopt.py	/^def e2e_constraint(periods, threshold):$/;"	f
+e2e_constraint	./ilp/ilp_pyomo.py	/^def e2e_constraint(periods, threshold):$/;"	f
+e2e_constraint	./ilp/ilp_scipy.py	/^def e2e_constraint(periods, threshold):$/;"	f
+e2e_thr	./ilp/ilp_pyomo.py	/^e2e_thr = 0$/;"	v
+end_to_end_delay	./utility.py	/^def end_to_end_delay(pipeline):$/;"	f
+end_to_end_delay_durr	./utility.py	/^def end_to_end_delay_durr(pipeline):$/;"	f
+end_to_end_delay_durr_periods	./utility.py	/^def end_to_end_delay_durr_periods(periods, m):$/;"	f
+end_to_end_delay_durr_periods_gekko	./utility.py	/^def end_to_end_delay_durr_periods_gekko(periods):$/;"	f
+end_to_end_delay_durr_periods_orig	./utility.py	/^def end_to_end_delay_durr_periods_orig(periods):$/;"	f
+end_to_end_delay_durr_periods_pyomo	./utility.py	/^def end_to_end_delay_durr_periods_pyomo(periods, extra_periods):$/;"	f
+gen_arrivals	./task_generator.py	/^def gen_arrivals(period, min_, max_, round_to_int=False):$/;"	f
+gen_kato_utilizations	./task_generator.py	/^def gen_kato_utilizations(nsets, umin, umax, target_util):$/;"	f
+gen_periods_discrete	./task_generator.py	/^def gen_periods_discrete(n, nsets, periods):$/;"	f
+gen_periods_loguniform	./task_generator.py	/^def gen_periods_loguniform(n, nsets, min_, max_, round_to_int=False):$/;"	f
+gen_periods_uniform	./task_generator.py	/^def gen_periods_uniform(n, nsets, min_, max_, round_to_int=False):$/;"	f
+gen_randfixedsum	./task_generator.py	/^def gen_randfixedsum(nsets, u, n):$/;"	f
+gen_ripoll	./task_generator.py	/^def gen_ripoll(nsets, compute, deadline, period, target_util):$/;"	f
+gen_tasksets	./task_generator.py	/^def gen_tasksets(utilizations, periods, round_to_int=False):$/;"	f
+gen_uunifastdiscard	./task_generator.py	/^def gen_uunifastdiscard(nsets, u, n):$/;"	f
+get_average	./multi_pipeline.py	/^def get_average(the_list):$/;"	f
+get_budgets	./multi_pipeline.py	/^def get_budgets(pipeline):$/;"	f
+get_core_avl_util	./multi_pipeline.py	/^def get_core_avl_util(core_no):$/;"	f
+get_init_budgets	./multi_pipeline.py	/^def get_init_budgets(pipeline):$/;"	f
+get_period_budget_tupled_pipeline	./multi_pipeline.py	/^def get_period_budget_tupled_pipeline(pipeline):$/;"	f
+get_separate_core_utils	./multi_pipeline.py	/^def get_separate_core_utils():$/;"	f
+get_total_available_utilization	./multi_pipeline.py	/^def get_total_available_utilization():$/;"	f
+get_total_util	./utility.py	/^def get_total_util(task_set):$/;"	f
+get_total_util_2	./utility.py	/^def get_total_util_2(budgets, periods):$/;"	f
+glob_budgets	./ilp/ilp_gekko.py	/^glob_budgets =[]$/;"	v
+glob_budgets	./ilp/ilp_ipopt.py	/^glob_budgets =[]$/;"	v
+glob_budgets	./ilp/ilp_pyomo.py	/^glob_budgets =[]$/;"	v
+glob_budgets	./ilp/ilp_scipy.py	/^glob_budgets =[]$/;"	v
+greater_eq	./ilp/ilp_pyomo.py	/^def greater_eq(p1, p2, prio):$/;"	f
+greater_rule	./ilp/ilp_pyomo.py	/^def greater_rule(model, i):$/;"	f
+init	./multi_pipeline.py	/^def init():$/;"	f
+is_harmonic_periods	./utility.py	/^def is_harmonic_periods(periods):$/;"	f
+log_con1	./ilp/ilp_pyomo.py	/^def log_con1(model, i):$/;"	f
+log_con2	./ilp/ilp_pyomo.py	/^def log_con2(model, i):$/;"	f
+loss_rate_ub	./pipeline.py	/^def loss_rate_ub(pipeline, initial_budgets):$/;"	f
+loss_rate_ub_GEKKO	./pipeline.py	/^def loss_rate_ub_GEKKO(pipeline, initial_budgets, m):$/;"	f
+main	./graphs/alpha.py	/^def main():$/;"	f
+main	./graphs/second_stage.py	/^def main():$/;"	f
+main	./graphs/stages.py	/^def main():$/;"	f
+main	./graphs/vary_starting_alpha.py	/^def main():$/;"	f
+main	./ilp/ilp_gekko.py	/^def main():$/;"	f
+main	./ilp/ilp_ipopt.py	/^def main():$/;"	f
+main	./ilp/ilp_or_mip.py	/^def main():$/;"	f
+main	./ilp/ilp_pyomo.py	/^def main():$/;"	f
+main	./ilp/ilp_sched.py	/^def main():$/;"	f
+main	./ilp/ilp_scipy.py	/^def main():$/;"	f
+main	./multi_pipeline.py	/^def main(argv):$/;"	f
+main	./opt_s2_lr.py	/^def main():$/;"	f
+main	./opt_s2_thr.py	/^def main():$/;"	f
+main	./opt_sched.py	/^def main():$/;"	f
+main	./opt_sched2.py	/^def main():$/;"	f
+main	./opt_sched2_more.py	/^def main():$/;"	f
+main	./schedule.py	/^def main():$/;"	f
+main	./schedule_math_alpha.py	/^def main():$/;"	f
+main	./sim_ann.py	/^def main():$/;"	f
+main	./stage_sched.py	/^def main():$/;"	f
+make_taskset_harmonic	./utility.py	/^def make_taskset_harmonic(taskset):$/;"	f
+map_task_to_core	./multi_pipeline.py	/^def map_task_to_core(core_no, task):$/;"	f
+migrate_tasks	./multi_pipeline.py	/^def migrate_tasks(needed_util, pipeline):$/;"	f
+model	./pipeline.py	/^model = None$/;"	v
+next_arrival_poisson	./task_generator.py	/^def next_arrival_poisson(period):$/;"	f
+num_cores	./multi_pipeline.py	/^num_cores = 4$/;"	v
+optimize_alpha	./opt_s2_lr.py	/^def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7):$/;"	f
+optimize_alpha	./opt_s2_thr.py	/^def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7):$/;"	f
+optimize_alpha	./opt_sched.py	/^def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7):$/;"	f
+optimize_alpha	./opt_sched2.py	/^def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7):$/;"	f
+optimize_alpha	./opt_sched2_more.py	/^def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7):$/;"	f
+optimize_alpha_live	./optimized_sched.py	/^def optimize_alpha_live(budgets, e2e_delay, loss_rate_bound, try_util_bound, starting_alpha=1.7):$/;"	f
+period_bound	./ilp/ilp_pyomo.py	/^def period_bound (model, i):$/;"	f
+period_init	./ilp/ilp_pyomo.py	/^def period_init (model, i):$/;"	f
+period_sum	./ilp/ilp_pyomo.py	/^def period_sum(model):$/;"	f
+pipeline_with_init_budgets	./multi_pipeline.py	/^def pipeline_with_init_budgets(pipeline, init_budget, e2e_ub=0, lr_ub=0):$/;"	f
+prio_init	./ilp/ilp_pyomo.py	/^def prio_init(model, i):$/;"	f
+reduce_pipeline_util	./multi_pipeline.py	/^def reduce_pipeline_util(pipeline):$/;"	f
+remove_pipeline	./multi_pipeline.py	/^def remove_pipeline(q_pipeline):$/;"	f
+rev_util_constraint	./ilp/ilp_ipopt.py	/^def rev_util_constraint(periods, budgets):$/;"	f
+rev_util_constraint	./ilp/ilp_pyomo.py	/^def rev_util_constraint(periods, budgets):$/;"	f
+rev_util_constraint	./ilp/ilp_scipy.py	/^def rev_util_constraint(periods, budgets):$/;"	f
+rms_bound	./utility.py	/^def rms_bound(n):$/;"	f
+running_pipelines	./multi_pipeline.py	/^running_pipelines = []$/;"	v
+sample_rate_lb	./pipeline.py	/^def sample_rate_lb(pipeline, initial_budgets):$/;"	f
+sample_rate_lb_helper	./pipeline.py	/^def sample_rate_lb_helper(budgets, periods, initial_budgets):$/;"	f
+sample_sums	./ilp/ilp_gekko.py	/^def sample_sums(periods):$/;"	f
+sample_sums	./ilp/ilp_ipopt.py	/^def sample_sums(periods):$/;"	f
+sample_sums	./ilp/ilp_scipy.py	/^def sample_sums(periods):$/;"	f
+set_core_avl_util	./multi_pipeline.py	/^def set_core_avl_util(core_no, util):$/;"	f
+set_cores	./multi_pipeline.py	/^def set_cores (number_of_cores):$/;"	f
+set_e2e_factor	./multi_pipeline.py	/^def set_e2e_factor(no_tasks):$/;"	f
+simulate_alpha	./sim_ann.py	/^def simulate_alpha(alpha = 1.2):$/;"	f
+solve_gekko	./ilp/ilp_gekko.py	/^def solve_gekko(budgets, e2e_delay_threshold):$/;"	f
+solve_scipy	./ilp/ilp_ipopt.py	/^def solve_scipy(budgets, e2e_delay_threshold):$/;"	f
+solve_scipy	./ilp/ilp_pyomo.py	/^def solve_scipy(budgets, e2e_delay_threshold):$/;"	f
+solve_scipy	./ilp/ilp_scipy.py	/^def solve_scipy(budgets, e2e_delay_threshold):$/;"	f
+task_util	./pipeline.py	/^def task_util(task):$/;"	f
+tasks_in_cores	./multi_pipeline.py	/^tasks_in_cores = []$/;"	v
+throughput_lb	./pipeline.py	/^def throughput_lb(pipeline, initial_budgets):$/;"	f
+throughput_lb_helper	./pipeline.py	/^def throughput_lb_helper(budgets, periods, initial_budgets):$/;"	f
+total_core_utilization	./multi_pipeline.py	/^def total_core_utilization():$/;"	f
+total_util	./ilp/ilp_gekko.py	/^def total_util(periods):$/;"	f
+total_util	./ilp/ilp_ipopt.py	/^def total_util(periods):$/;"	f
+total_util	./ilp/ilp_pyomo.py	/^def total_util(periods):$/;"	f
+total_util	./ilp/ilp_scipy.py	/^def total_util(periods):$/;"	f
+trunc	./task_generator.py	/^    def trunc(x, p):$/;"	f	function:gen_arrivals
+trunc	./task_generator.py	/^    def trunc(x, p):$/;"	f	function:gen_tasksets
+unmap_task_from_core	./multi_pipeline.py	/^def unmap_task_from_core(core_no, task):$/;"	f
+util_constraint	./ilp/ilp_ipopt.py	/^def util_constraint(periods, budgets):$/;"	f
+util_constraint	./ilp/ilp_pyomo.py	/^def util_constraint(periods, budgets):$/;"	f
+util_constraint	./ilp/ilp_scipy.py	/^def util_constraint(periods, budgets):$/;"	f
+utilization_bound_gekko	./utility.py	/^def utilization_bound_gekko(tasks, m, periods):$/;"	f
+utilization_bound_test	./utility.py	/^def utilization_bound_test(tasks):$/;"	f
+utilization_bound_test_non_harmo	./utility.py	/^def utilization_bound_test_non_harmo(tasks):$/;"	f

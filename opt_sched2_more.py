@@ -13,12 +13,13 @@ import matplotlib.pyplot as plt
 import sys, os, pickle
 from utility import *
 from pipeline import *
-import copy
+import copy, random
 
 def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7):
     alpha = starting_alpha
     step = 0.01
     schedulable = False
+    # print ("------", sum(budgets), e2e_delay, (float(e2e_delay) / sum(budgets)) / len(budgets))
 
     while alpha > 1.0 and not schedulable:
         increased_period = int(alpha * equal_period)
@@ -29,6 +30,10 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
 
         # the following variable keeps track of whether at least one pipe was changed.
         at_least_one_pipe_changed = False
+
+        # If a stretched Pipeline is not schedulable then break
+        if not utilization_bound_test(taskset):
+            break
 
         while True:
             for i in range(0, len(taskset) - 1):
@@ -48,9 +53,10 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
 
                     if utilization_bound_test(taskset2):
                         taskset = copy.deepcopy(taskset2)
+                        # print ("2nd U:", get_total_util(taskset2), end_to_end_delay_durr(taskset2), loss_rate_ub(taskset, budgets))
+                        # print (taskset2)
                         at_least_one_pipe_changed = True
                         # print (taskset, get_total_util(taskset))
-
                         if end_to_end_delay_durr(taskset) <= e2e_delay:
                             # print ("Under e2e_delay threshold")
                             # print (taskset)
@@ -59,6 +65,25 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
                             print ("Second Stage Sched, E2E: ", end_to_end_delay_durr(taskset))
                             print (taskset)
                             return 2 # Second stage Schedulable
+                    elif get_total_util(taskset2) <= 1.0:
+                        # print ("Util Failed Second: ", get_total_util(taskset2))
+                        # print (taskset2)
+                        new_taskset = make_taskset_harmonic(taskset2)
+                        # print (new_taskset, get_total_util(new_taskset), utilization_bound_test(new_taskset))
+                        if utilization_bound_test(new_taskset):
+                            # print("Make util pass")
+                            # print (new_taskset, get_total_util(new_taskset))
+                            taskset = copy.deepcopy(new_taskset)
+                            at_least_one_pipe_changed = True
+
+                            if end_to_end_delay_durr(taskset) <= e2e_delay:
+                                # print ("Under e2e_delay threshold")
+                                # print (taskset)
+                                schedulable = True
+                                is_second_stage_sched = True
+                                print ("Second Stage Sched, E2E: ", end_to_end_delay_durr(taskset))
+                                print (taskset)
+                                return 2 # Second stage Schedulable
             # if it is already schedulable do not tune another task
             if is_second_stage_sched:
                 break
@@ -72,57 +97,68 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
             break
 
         # Third Stage
-        # print ("Third Stage", taskset)
+        if utilization_bound_test(taskset):
+            # print ("Third Stage", taskset)
 
-        #Step 5
-        for i in range(len(taskset) - 1, -1, -1):
-            cur_budget = int(taskset[i][0])
-            cur_period = int(taskset[i][1])
+            #Step 5
+            for i in range(len(taskset) - 1, -1, -1):
+                cur_budget = int(taskset[i][0])
+                cur_period = int(taskset[i][1])
 
-            initial_budget = int(single_set[i][0])
-            # print (cur_budget, cur_period, initial_budget)
+                initial_budget = int(single_set[i][0])
+                # print (cur_budget, cur_period, initial_budget)
 
-            while cur_budget // 2 >= initial_budget:
-                cur_budget = cur_budget // 2
-                cur_period = cur_period // 2
-                # print ("Halved budget and period")
+                while cur_budget // 2 >= initial_budget:
+                    cur_budget = cur_budget // 2
+                    cur_period = cur_period // 2
+                    # print ("Halved budget and period")
 
-            taskset[i] = (cur_budget, cur_period)
+                taskset[i] = (cur_budget, cur_period)
 
-            if utilization_bound_test(taskset) and end_to_end_delay_durr(taskset) <= e2e_delay:
-                print ("Third Stage Schedulable and under threshold")
-                print (taskset, end_to_end_delay_durr(taskset), 100 * get_total_util(taskset))
-                schedulable = True
-                return 3
-        # Making taskset harmonic
-        print ("Unsched ", taskset)
-        harm_taskset = make_taskset_harmonic(taskset)
-        print ("Harm ", new_taskset)
-        if utilization_bound_test(taskset) and end_to_end_delay_durr(taskset) <= e2e_delay:
-            print ("Schedulable and under Threshold")
-            return 3
+                if utilization_bound_test(taskset) and end_to_end_delay_durr(taskset) <= e2e_delay:
+                    # print ("Third Stage Schedulable and under threshold")
+                    # print (taskset, end_to_end_delay_durr(taskset), 100 * get_total_util(taskset))
+                    schedulable = True
+                    # sys.exit(1)
+                    return 3
+                elif get_total_util(taskset) <= 1.0 and end_to_end_delay_durr(taskset) <= e2e_delay:
+                    # print ("Util Rejected: ", 100 * get_total_util(taskset))
+                    # print (taskset)
+                    harm_taskset = make_taskset_harmonic(taskset)
+                    # print (harm_taskset, get_total_util(harm_taskset))
+                    # print ("Harm ", harm_taskset)
+                    if utilization_bound_test(harm_taskset) and end_to_end_delay_durr(harm_taskset) <= e2e_delay:
+                        # print ("Harmonic Schedulable and under Threshold")
+                        # print (harm_taskset, end_to_end_delay_durr(harm_taskset), 100 * get_total_util(harm_taskset))
+                        schedulable = True
+                        # sys.exit(1)
+                        return 3
+                    # sys.exit(1)
 
         alpha = alpha - step
 
     return 0
 
 def main():
-    no_tasks = 10
-    no_tasksets = 1000
+    random.seed(100)
+    no_tasks = 5
+    no_tasksets = 100
 
-    min_period = 100
-    max_period = 1000
+    total_util = 0.95
 
-    total_util = 0.75
-
-    e2e_delay_factor = 14
+    e2e_delay_factor = 8.65
     alpha = 1.2
+
+    min_period = 10
+    max_period = 1000
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 
     period_sets = task_gen.gen_periods_uniform(no_tasks, no_tasksets, min_period, max_period, True)
 
     current_sets = task_gen.gen_tasksets(utils_sets, period_sets, True)
+    print (len(current_sets))
+    # sys.exit(1)
 
     first_schedl = 0
     second_schedl = 0
@@ -142,11 +178,16 @@ def main():
         budgets = [x[0] for x in single_set]
         periods = [x[1] for x in single_set]
 
+        # budgets = [random.randint(5, 250) for x in single_set]
+        # print (budgets)
+        # single_set = [(budgets[i], periods[i]) for i in range(len(single_set))]
+        # print ("max/min budget:", max(budgets)/min(budgets))
+
         # we calculate end_to_end delay_ub as a factor of the summation of budgets
         e2e_delay_ub = int(sum(budgets) * e2e_delay_factor)
         print ("Sum Budgets: {}, E2E_UB: {}".format(sum(budgets), e2e_delay_ub))
 
-        equal_period = e2e_delay_ub // no_tasks
+        equal_period = int(e2e_delay_ub / (no_tasks + 1))
         # for b in budgets:
         #     if b > equal_period:
         #         print ("Not schedulable: ", single_set, equal_period)
@@ -156,18 +197,16 @@ def main():
         taskset = [(b, equal_period) for b in budgets]
 
         if utilization_bound_test(taskset) and end_to_end_delay_durr(taskset) <= e2e_delay_ub:
+            print ("First: ", taskset, end_to_end_delay_durr(taskset), get_total_util(taskset))
             first_schedl += 1
-            continue
-
-        # print ("Second Stage", taskset, get_total_util(taskset))
-
         #Step 2
-        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay_ub, starting_alpha = 2)
+        else:
+            opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay_ub, starting_alpha = 2)
 
-        if opt_alpha == 2:
-            second_schedl += 1
-        elif opt_alpha == 3:
-            third_schedl += 1
+            if opt_alpha == 2:
+                second_schedl += 1
+            elif opt_alpha == 3:
+                third_schedl += 1
 
         done_tasksets += 1
         print ("{} Completed Tasksets.".format(done_tasksets))
@@ -178,6 +217,8 @@ def main():
         print ("third schedulable: {}/{}".format(third_schedl, done_tasksets))
 
         print ("Unschedulable: {}/{}".format((done_tasksets - first_schedl - second_schedl - third_schedl), done_tasksets))
+        # if done_tasksets >= 200:
+        #     break
 
 
     print ("first schedulable: {}/{}".format(first_schedl, no_tasksets))
