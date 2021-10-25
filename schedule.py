@@ -1,5 +1,5 @@
 '''
-The Boomerang Scheduler Simulation - Exact Boomerang version
+ - Very early version
 '''
 
 import task_generator as task_gen

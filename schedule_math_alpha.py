@@ -1,5 +1,5 @@
 '''
-The Boomerang Scheduler Simulation
+
 
 I derive an alpha value from mathematical equation
 '''

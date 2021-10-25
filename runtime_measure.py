@@ -1,5 +1,5 @@
 '''
-The Boomerang Scheduler Simulation
+
 In this one, I try Stage 2 one pipe only once and apply sequentially from first producer to last consumer and then come back again.
 
 -- This is more optimized version to make tasksets harmonic

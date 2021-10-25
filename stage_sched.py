@@ -1,5 +1,5 @@
 '''
-The Boomerang Scheduler Simulation
+
 '''
 
 import task_generator as task_gen

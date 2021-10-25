@@ -1,5 +1,5 @@
 '''
-The Boomerang Scheduler Simulation
+
 -
 Find an optimized alpha value of each taskset. The alpha is dynamically chosen for each taskset.
 
