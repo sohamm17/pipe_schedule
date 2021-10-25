@@ -6,7 +6,7 @@ import os, pickle
 def create_solver(budgets, e2e_delay_threshold):
     no_tasks = len(budgets)
 
-    solver = pywraplp.Solver.CreateSolver('GLOP')
+    solver = pywraplp.Solver.CreateSolver('SCIP')
     infinity = solver.infinity()
 
     periods = []
@@ -55,7 +55,7 @@ def main():
 
     total_util = 0.75
 
-    e2e_delay_factor = 8
+    e2e_delay_factor = 14
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 

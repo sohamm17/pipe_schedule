@@ -3,14 +3,21 @@ import task_generator as task_gen
 import numpy as np
 import math
 import matplotlib.pyplot as plt
-import sys, os, pickle
+import sys, os, pickle, copy
 from utility import *
 from pipeline import *
-import copy
+
+from gekko import GEKKO
+
 """
 try_util_bound: It is to try get the util under a suggested bound.
 """
+GEKKO_RUN = False
+
 def optimize_alpha_live(budgets, e2e_delay, loss_rate_bound, try_util_bound, starting_alpha=1.7):
+    if GEKKO_RUN:
+        return solve_gekko(budgets, e2e_delay, loss_rate_bound, try_util_bound)
+
     no_tasks = len(budgets)
 
     equal_period = int(e2e_delay / (no_tasks + 1))
@@ -19,7 +26,7 @@ def optimize_alpha_live(budgets, e2e_delay, loss_rate_bound, try_util_bound, sta
     # print (sum(budgets), e2e_delay, (float(e2e_delay) / sum(budgets)) / no_tasks)
 
     if get_total_util(taskset) <= try_util_bound and end_to_end_delay_durr(taskset) <= e2e_delay and loss_rate_ub(taskset, budgets) <= loss_rate_bound:
-        print("Simple", get_total_util(taskset))
+        # print("Simple", get_total_util(taskset))
         return taskset, 1
 
     alpha = starting_alpha
@@ -106,3 +113,65 @@ def optimize_alpha_live(budgets, e2e_delay, loss_rate_bound, try_util_bound, sta
         alpha = alpha - step
 
     return None, None
+
+"""
+Live Gekko Optimization
+"""
+def solve_gekko(budgets, e2e_delay_threshold, loss_rate_ub, try_util_bound):
+    # global glob_budgets
+    no_tasks = len(budgets)
+
+    m = GEKKO(remote=False) # Initialize gekko
+    print (sum(budgets), e2e_delay_threshold)
+
+    # APOPT Solver
+    m.options.SOLVER=1  # APOPT is an MINLP solver
+    # optional solver settings with APOPT
+    m.solver_options = ['minlp_maximum_iterations 70000', \
+    # minlp iterations with integer solution
+    'minlp_max_iter_with_int_sol 5000', \
+    # treat minlp as nlp
+    'minlp_as_nlp 0', \
+    # nlp sub-problem max iterations
+    'nlp_maximum_iterations 2000', \
+    # 1 = depth first, 2 = breadth first
+    'minlp_branch_method 1', \
+    # maximum deviation from whole number
+    'minlp_integer_tol 0.5', \
+    # covergence tolerance
+    'minlp_gap_tol 0.1']
+
+    periods = []
+    prios = []
+
+    for i in range(no_tasks):
+        periods.append(m.Var(value = (budgets[i] * 15000), lb = int(budgets[i] * 1.5), ub = budgets[i] * 20000, integer = True))
+        # periods.append(m.Var(value = 5, lb = 0, ub = 10, integer = True))
+        # Increasing Period Constraint
+        # if i > 0:
+        #     m.Equation(periods[i] >= periods[i - 1])
+
+    # glob_budgets = budgets
+
+    taskset = []
+    for i in range(len(budgets)):
+        taskset.append((budgets[i], periods[i]))
+
+    m.Equation(end_to_end_delay_durr_periods(periods, m)<=e2e_delay_threshold)
+    m.Equation(utilization_bound_gekko(taskset, m, periods)>= 0.0)
+
+    # m.Obj(end_to_end_delay_durr_periods(periods, m))
+    # m.Obj(sum(periods))
+    try:
+        print ("GEKKO Trying")
+        m.solve(disp=False)
+        final_taskset = [(budgets[i], periods[i].value) for i in range(len(budgets))]
+
+        print("GEKKO LR: ", loss_rate_ub(final_taskset))
+
+        if loss_rate_ub(final_taskset) <= loss_rate_ub and end_to_end_delay_durr(taskset) <= e2e_delay_threshold and get_total_util(taskset) <= try_util_bound:
+            return final_taskset, 2
+        else:
+            return (None, None)
+    except:
+        return (None, None)

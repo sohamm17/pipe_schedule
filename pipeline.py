@@ -8,10 +8,10 @@ Returns the utilization of a task
 def task_util(task):
     return float(task['budget']) / task['period']
 
-GEKKO = 0
+# GEKKO = 0
 model = None
 
-def sample_rate_lb_helper(budgets, periods, initial_budgets):
+def sample_rate_lb_helper(budgets, periods, initial_budgets, GEKKO=0):
     fx = 1 # Sampling Rate
     N = len(budgets)
     if N == 1:
@@ -23,7 +23,7 @@ def sample_rate_lb_helper(budgets, periods, initial_budgets):
         # print ("L: ", N, fx)
         return fx
     else:
-        prev_pipeline_fx = sample_rate_lb_helper(budgets[:N - 1], periods[:N - 1], initial_budgets[:N - 1])
+        prev_pipeline_fx = sample_rate_lb_helper(budgets[:N - 1], periods[:N - 1], initial_budgets[:N - 1], GEKKO)
 
         second_last_period = periods[N - 2]
         last_period = periods[N - 1]
@@ -38,32 +38,38 @@ def sample_rate_lb_helper(budgets, periods, initial_budgets):
         last_initial_budget_multipl = last_budget // last_initial_budget
 
         if GEKKO:
-            is_oversample = model.if3(second_last_period - last_period, 1, 0)
+            is_oversample = GEKKO.if3(second_last_period - last_period, 0, 1)
         else:
             is_oversample = True if last_period <= second_last_period else False
 
 
         last_sampling_rate = ((1.0 * second_last_period) / last_period) * (last_initial_budget_multipl / second_last_initial_budget_multipl)
 
-        if (prev_pipeline_fx < 1 and is_oversample): # Case 1
-            fx = prev_pipeline_fx
-        elif prev_pipeline_fx < 1 and not is_oversample: # Case 2
-            fx = prev_pipeline_fx * last_sampling_rate
-        elif prev_pipeline_fx >= 1 and is_oversample: # Case 3
-            fx = prev_pipeline_fx * last_sampling_rate
-        else: # Case 4
-            fx = (1 / prev_pipeline_fx) * last_sampling_rate
-        # print ("L: ", N, fx)
+        if GEKKO:
+            temp = GEKKO.if3(prev_pipeline_fx - 1, 1, 0)
+            fx = GEKKO.if3(temp + is_oversample - 2, prev_pipeline_fx * last_sampling_rate, prev_pipeline_fx)
+        else:
+            if (prev_pipeline_fx < 1 and is_oversample): # Case 1
+                fx = prev_pipeline_fx
+            else: # Other cases
+                fx = prev_pipeline_fx * last_sampling_rate
+            # elif prev_pipeline_fx < 1 and not is_oversample: # Case 2
+            #     fx = prev_pipeline_fx * last_sampling_rate
+            # elif prev_pipeline_fx >= 1 and is_oversample: # Case 3
+            #     fx = prev_pipeline_fx * last_sampling_rate
+            # else: # Case 4
+            #     fx = (1 / prev_pipeline_fx) * last_sampling_rate
+        # print ("Loss: ", N, fx)
         return fx
 
 """
 The following function calculates sampling rate LB of an asynchronous
 pipeline.
 """
-def sample_rate_lb(pipeline, initial_budgets):
+def sample_rate_lb(pipeline, initial_budgets, GEKKO=0):
     budgets = [t[0] for t in pipeline]
     periods = [t[1] for t in pipeline]
-    return sample_rate_lb_helper(budgets, periods, initial_budgets)
+    return sample_rate_lb_helper(budgets, periods, initial_budgets, GEKKO)
 
 """
 The following function calculates loss rate UB of an asynchronous
@@ -71,18 +77,16 @@ pipeline.
 """
 def loss_rate_ub(pipeline, initial_budgets):
     sr = sample_rate_lb(pipeline, initial_budgets)
-    if sr <= 1:
-        return  (1 - sr)
-    else:
+    if sr >= 1:
         return 0
+    else:
+        return (1 - sr)
 
 def loss_rate_ub_GEKKO(pipeline, initial_budgets, m):
     model = m
-    sr = sample_rate_lb(pipeline, initial_budgets)
-    if sr <= 1:
-        return  (1 - sr)
-    else:
-        return 0
+    sr = sample_rate_lb(pipeline, initial_budgets, GEKKO=m)
+    lr = model.if3(1 - sr, 0, (1 - sr))
+    return lr
 
 """
 This calculates the minimum throughput of a Pipeline

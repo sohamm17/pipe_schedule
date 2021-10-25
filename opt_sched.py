@@ -2,6 +2,8 @@
 The Boomerang Scheduler Simulation
 -
 Find an optimized alpha value of each taskset. The alpha is dynamically chosen for each taskset.
+
+Concentrated Stage 2 Version
 '''
 
 import task_generator as task_gen
@@ -31,10 +33,10 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
             producer = taskset[i]
             consumer = taskset[i + 1]
 
-            print ("Iter ", i, taskset)
+            # print ("Iter ", i, taskset)
             taskset2 = copy.deepcopy(taskset)
 
-            while producer[0] < producer[1] and consumer[0] < consumer[1]:
+            while (producer[0] < (producer[1] // 2)) and (consumer[0] * 2 < consumer[1]):
                 # period of the producer is halved
                 producer = (producer[0], producer[1] // 2)
                 # budget of the consumer is doubled
@@ -47,9 +49,9 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
                 else:
                     break
 
-                print (taskset, get_total_util(taskset))
+                # print (taskset, get_total_util(taskset))
 
-                if end_to_end_delay(taskset) <= e2e_delay:
+                if end_to_end_delay_durr(taskset) <= e2e_delay:
                     # print ("Under e2e_delay threshold")
                     # print (taskset)
                     schedulable = True
@@ -64,7 +66,7 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
             break
 
         # Third Stage
-        print ("Third Stage", taskset)
+        # print ("Third Stage", taskset)
 
         #Step 5
         for i in range(len(taskset) - 1, -1, -1):
@@ -72,16 +74,16 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
             cur_period = int(taskset[i][1])
 
             initial_budget = int(single_set[i][0])
-            print (cur_budget, cur_period, initial_budget)
+            # print (cur_budget, cur_period, initial_budget)
 
-            while cur_budget < cur_period and cur_budget >= initial_budget:
+            while cur_budget // 2 < cur_period and cur_budget // 2 >= initial_budget:
                 cur_budget = cur_budget // 2
                 cur_period = cur_period // 2
                 # print ("Halved budget and period")
 
             taskset[i] = (cur_budget, cur_period)
 
-            if utilization_bound_test(taskset) and end_to_end_delay(taskset) <= e2e_delay:
+            if utilization_bound_test(taskset) and end_to_end_delay_durr(taskset) <= e2e_delay:
                 # print ("Schedulable and under threshold")
                 # print (taskset)
                 schedulable = True
@@ -101,8 +103,8 @@ def main():
 
     total_util = 0.75
 
-    e2e_delay_factor = 1
-    alpha = 1.2
+    e2e_delay_factor = 15
+    alpha = 1.5
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 
@@ -123,13 +125,16 @@ def main():
         with open(setfile_string, "rb") as setfile:
             current_sets = pickle.load(setfile)
 
+    done_tasksets = 0
+
     for single_set in current_sets:
         budgets = [x[0] for x in single_set]
         periods = [x[1] for x in single_set]
 
-        e2e_delay = sum(periods) * e2e_delay_factor
+        # e2e_delay = sum(periods) * e2e_delay_factor
+        e2e_delay = int(sum(budgets) * e2e_delay_factor)
 
-        equal_period = e2e_delay // no_tasks
+        equal_period = e2e_delay // (no_tasks + 1)
         for b in budgets:
             if b > equal_period:
                 print ("Not schedulable: ", single_set, equal_period)
@@ -142,24 +147,24 @@ def main():
             first_schedl += 1
             continue
 
-        print ("Second Stage", taskset, get_total_util(taskset))
+        # print ("Second Stage", taskset, get_total_util(taskset))
 
         #Step 2
-        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha = 2)
+        opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha = alpha)
 
         if opt_alpha == 2:
             second_schedl += 1
         elif opt_alpha == 3:
             third_schedl += 1
 
+        done_tasksets += 1
+        print ("first schedulable: {}/{}".format(first_schedl, done_tasksets))
 
-    print ("first schedulable: {}/{}".format(first_schedl, no_tasksets))
+        print ("second schedulable: {}/{}".format(second_schedl, done_tasksets))
 
-    print ("second schedulable: {}/{}".format(second_schedl, no_tasksets))
+        print ("third schedulable: {}/{}".format(third_schedl, done_tasksets))
 
-    print ("third schedulable: {}/{}".format(third_schedl, no_tasksets))
-
-    print ("Unschedulable: {}/{}".format((no_tasksets - first_schedl - second_schedl - third_schedl), no_tasksets))
+        print ("Unschedulable: {}/{}".format((done_tasksets - first_schedl - second_schedl - third_schedl), done_tasksets))
 
 if __name__ == "__main__":
     main()

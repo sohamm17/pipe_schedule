@@ -21,6 +21,7 @@ tasks_in_cores = []
 running_pipelines = []
 
 number_of_migrations = 0
+number_of_unsuccess_migrations = 0
 
 # For 10 tasks Pipelines
 MIN_E2E_FACTOR = 6
@@ -29,12 +30,16 @@ MAX_E2E_FACTOR = 8
 MIN_LOSS_FACTOR = 50
 MAX_LOSS_FACTOR = 80
 
+MIGRATION = True
+ONLINE_ADJUSTMENT = True
+
 # Initialize global variables
 def init():
-    global core_avl_util, tasks_in_cores, number_of_migrations
+    global core_avl_util, tasks_in_cores, number_of_migrations, number_of_migrations
     core_avl_util = [(0, 0.69), (1, 0.69), (2, 0.69), (3, 0.69), (4, 0.69), (5, 0.69), (6, 0.69), (7, 0.69)]
     tasks_in_cores = []
     running_pipelines = []
+    number_of_migrations = 0
     number_of_migrations = 0
 
 def set_cores (number_of_cores):
@@ -46,8 +51,9 @@ def set_cores (number_of_cores):
 
 def set_e2e_factor(no_tasks):
     global MIN_E2E_FACTOR, MAX_E2E_FACTOR
-    MIN_E2E_FACTOR = 1.7 # 1.7-1.8 for 5 tasks
-    MAX_E2E_FACTOR = 2.1
+    # 1.7-1.8 for 5 tasks. 1.7-2.1 for 3 tasks.
+    MIN_E2E_FACTOR = 1.7
+    MAX_E2E_FACTOR = 1.8
     print ("MIN_E2E_FACTOR, MAX_E2E_FACTOR: ", MIN_E2E_FACTOR, MAX_E2E_FACTOR)
 
 def get_core_avl_util(core_no):
@@ -139,20 +145,20 @@ def migrate_tasks(needed_util, pipeline):
                 if c[0] == cur_core_no:
                     continue
                 if task_util(this_task) <= get_core_avl_util(c[0]):
-                    print ("Migrating task", this_task['id'], "from", this_task['core'], "to", c[0])
-                    print (tasks_in_cores[c[0]])
-                    print (tasks_in_cores[cur_core_no])
+                    # print ("Migrating task", this_task['id'], "from", this_task['core'], "to", c[0])
+                    # print (tasks_in_cores[c[0]])
+                    # print (tasks_in_cores[cur_core_no])
                     map_task_to_core(c[0], this_task)
                     unmap_task_from_core(cur_core_no, this_task)
-                    print (tasks_in_cores[c[0]])
-                    print (tasks_in_cores[cur_core_no])
+                    # print (tasks_in_cores[c[0]])
+                    # print (tasks_in_cores[cur_core_no])
                     return
                     # print (local_core_avl_util, get_total_available_utilization())
                     # sys.exit(1)
 
 # pipeline of tasks
 def WFD_FIT(pipeline):
-    global core_avl_util, num_cores
+    global core_avl_util, num_cores, number_of_migrations, number_of_unsuccess_migrations
     # Sort the tasks by utilization
     sorted_tasklist = sorted(pipeline['tasks'], key=lambda t: t['budget'] /t['period'], reverse=True)
     # And now map as First-fit
@@ -181,10 +187,14 @@ def WFD_FIT(pipeline):
             for task in sorted_tasklist:
                 map_task_to_core(task_to_core_map[i], task)
                 i += 1
+            number_of_migrations += migrations
             return True
-        else:
+        elif MIGRATION:
             migrate_tasks(None, None)
-        migrations += 1
+            migrations += 1
+        else:
+            return False
+    number_of_unsuccess_migrations += migrations
     return False
 
 # pipeline of tasks
@@ -250,12 +260,12 @@ def get_budgets(pipeline):
 def get_init_budgets(pipeline):
     return [t['init_budget'] for t in pipeline]
 
-def adjust_existing_pipeline(heur_reject=True):
+def adjust_existing_pipeline(heur_reject=True, start=0):
     global running_pipelines
     if heur_reject:
         # This means that we do not have enough utilization that the heuristics could give us a feasible schedule
         # So optimize exisitng Pipelines
-        for pipeline in running_pipelines:
+        for pipeline in running_pipelines[start:]:
             # print ("Running Pipeline ", pipeline)
             cur_util = get_total_util(get_period_budget_tupled_pipeline(pipeline['tasks']))
             e2e_ub = pipeline['tasks'][0]['e2e_ub']
@@ -277,7 +287,7 @@ def get_average(the_list):
     return float(sum(the_list)) / len(the_list)
 
 def main(argv):
-    global num_cores, core_avl_util, tasks_in_cores, running_pipelines
+    global num_cores, core_avl_util, tasks_in_cores, running_pipelines, number_of_migrations, number_of_unsuccess_migrations, ONLINE_ADJUSTMENT
     try:
         opts, args = getopt.getopt(argv, "p:t:r:c:")
     except getopt.GetoptError:
@@ -303,6 +313,8 @@ def main(argv):
     mapped_pipelines_all_runs = []
     optimized23_pipelines = [] # Stage2/3 Optimized Pipelines
     used_core_utils = []
+    total_migrations = []
+    total_unsuccess_migrations = []
 
     for run_id in range(runs):
         print ("RUN ID -----------------------", run_id)
@@ -327,7 +339,7 @@ def main(argv):
 
             existing_pipeline_adj = 0
             while existing_pipeline_adj < 1:
-                print("First Total Avl Util: ", get_total_available_utilization())
+                # print("First Total Avl Util: ", get_total_available_utilization())
                 suggest_util = get_total_available_utilization() # min(get_total_available_utilization(), 0.69)
 
                 taskset, opti = sched.optimize_alpha_live(pipeline, e2e_ub, loss_rate, suggest_util, starting_alpha=2)
@@ -335,16 +347,16 @@ def main(argv):
                 if opti is not None and opti > 1:
                     optimized += 1
 
-                if taskset is None:
-                    print ("Pipeline is rejected by heuristic. Avl: ", get_total_available_utilization())
+                if taskset is None and ONLINE_ADJUSTMENT:
+                    # print ("Pipeline is rejected by heuristic. Avl: ", get_total_available_utilization())
                     existing_pipeline_adj += 1
-                    print ("Trying Pipeline Adjustments")
-                    if adjust_existing_pipeline(True):
-                        print ("Now: ", get_total_available_utilization())
-                        print ("Trying Heuristic again.")
+                    # print ("Trying Pipeline Adjustments")
+                    if adjust_existing_pipeline(True, start=existing_pipeline_adj-1):
+                        print ("Success in Adjustment")
+                        # print ("Now: ", get_total_available_utilization())
                         continue
-                    else:
-                        print ("Could not adjust an existing Pipeline")
+                    # else:
+                    #     print ("Could not adjust an existing Pipeline")
                 else:
                     break
 
@@ -354,21 +366,12 @@ def main(argv):
                 if WFD_FIT(current_pipeline):
                     running_pipelines.append(current_pipeline)
                     mapped_pipelines += 1
-                    print ("Pipeline Mapped.")
+                    # print ("Pipeline Mapped.")
                     # print (tasks_in_cores)
-                else:
-                    print ("Pipeline rejected by mapper.")
+                # else:
+                #     print ("Pipeline rejected by mapper.")
             else:
                 reject_heuristic += 1
-
-            print ("Core Util: ", core_avl_util)
-
-        for core in tasks_in_cores:
-            print (core)
-
-        print ("Core Util:")
-        for i in range(num_cores):
-            print (core_utilization(i))
 
         print ("Mapped Pipelines: {}/{}".format(mapped_pipelines, no_pipelines))
         print ("Rejected by Heuristic: {}/{}".format(reject_heuristic, no_pipelines))
@@ -380,9 +383,11 @@ def main(argv):
         mapper_rejections.append(no_pipelines - reject_heuristic - mapped_pipelines)
         optimized23_pipelines.append(optimized)
         used_core_utils.append(total_core_utilization())
+        total_migrations.append(number_of_migrations)
+        total_unsuccess_migrations.append(number_of_unsuccess_migrations)
 
-    print ("total runs", runs, "-- mapped pipelines, heuristic rejections, mapper rejectiosn, optimized2/3 stage, used core utilization:")
-    print (get_average(mapped_pipelines_all_runs), get_average(heuristic_rejections), get_average(mapper_rejections), get_average(optimized23_pipelines), get_average(used_core_utils))
+    print ("total runs", runs, "-- mapped pipelines, heuristic rejections, mapper rejections, optimized2/3 stage, used core utilization:")
+    print (get_average(mapped_pipelines_all_runs), get_average(heuristic_rejections), get_average(mapper_rejections), get_average(optimized23_pipelines), get_average(used_core_utils), get_average(total_migrations), get_average(total_unsuccess_migrations))
 
     return True
 

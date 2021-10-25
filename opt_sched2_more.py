@@ -5,6 +5,7 @@ In this one, I try Stage 2 one pipe only once and apply sequentially from first 
 -- This is more optimized version to make tasksets harmonic
 '''
 
+from timeit import default_timer as timer
 import task_generator as task_gen
 
 import numpy as np
@@ -15,13 +16,17 @@ from utility import *
 from pipeline import *
 import copy, random
 
-def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7):
+num_iterations = 0
+
+def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=1.7, ending_alpha=2.0):
+    global num_iterations
+    num_iterations = 0
     alpha = starting_alpha
     step = 0.01
     schedulable = False
     # print ("------", sum(budgets), e2e_delay, (float(e2e_delay) / sum(budgets)) / len(budgets))
 
-    while alpha > 1.0 and not schedulable:
+    while alpha <= ending_alpha and not schedulable:
         increased_period = int(alpha * equal_period)
 
         taskset = [(b, increased_period) for b in budgets]
@@ -32,8 +37,10 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
         at_least_one_pipe_changed = False
 
         # If a stretched Pipeline is not schedulable then break
-        if not utilization_bound_test(taskset):
-            break
+        # if not utilization_bound_test(taskset):
+        #     break
+
+        num_iterations += 1
 
         while True:
             for i in range(0, len(taskset) - 1):
@@ -56,6 +63,7 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
                         # print ("2nd U:", get_total_util(taskset2), end_to_end_delay_durr(taskset2), loss_rate_ub(taskset, budgets))
                         # print (taskset2)
                         at_least_one_pipe_changed = True
+                        i += 1
                         # print (taskset, get_total_util(taskset))
                         if end_to_end_delay_durr(taskset) <= e2e_delay:
                             # print ("Under e2e_delay threshold")
@@ -119,37 +127,42 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
                     # print ("Third Stage Schedulable and under threshold")
                     # print (taskset, end_to_end_delay_durr(taskset), 100 * get_total_util(taskset))
                     schedulable = True
+                    # print ("Scheduling Alpha: :", alpha)
                     # sys.exit(1)
                     return 3
                 elif get_total_util(taskset) <= 1.0 and end_to_end_delay_durr(taskset) <= e2e_delay:
                     # print ("Util Rejected: ", 100 * get_total_util(taskset))
                     # print (taskset)
                     harm_taskset = make_taskset_harmonic(taskset)
-                    # print (harm_taskset, get_total_util(harm_taskset))
-                    # print ("Harm ", harm_taskset)
-                    if utilization_bound_test(harm_taskset) and end_to_end_delay_durr(harm_taskset) <= e2e_delay:
-                        # print ("Harmonic Schedulable and under Threshold")
-                        # print (harm_taskset, end_to_end_delay_durr(harm_taskset), 100 * get_total_util(harm_taskset))
-                        schedulable = True
-                        # sys.exit(1)
-                        return 3
+                    taskset = harm_taskset
+                    # # print (harm_taskset, get_total_util(harm_taskset))
+                    # # print ("Harm ", harm_taskset)
+                    # if utilization_bound_test(harm_taskset) and end_to_end_delay_durr(harm_taskset) <= e2e_delay:
+                    #     # print ("Harmonic Schedulable and under Threshold")
+                    #     # print (harm_taskset, end_to_end_delay_durr(harm_taskset), 100 * get_total_util(harm_taskset))
+                    #     schedulable = True
+                    #     # sys.exit(1)
+                    #     return 3
                     # sys.exit(1)
-
-        alpha = alpha - step
+        alpha = alpha + step
 
     return 0
 
 def main():
-    random.seed(100)
+    global num_iterations
+    accepted_num_iterations = []
+    accepted_time_taken = []
+    rejected_time_taken = []
     no_tasks = 5
-    no_tasksets = 100
+    no_tasksets = 1000
 
-    total_util = 0.95
+    total_util = 0.75
 
-    e2e_delay_factor = 8.65
-    alpha = 1.2
+    stretch_factor = 1.5
+    e2e_delay_factor = no_tasks * stretch_factor
+    alpha = 1.5
 
-    min_period = 10
+    min_period = 100
     max_period = 1000
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
@@ -157,7 +170,6 @@ def main():
     period_sets = task_gen.gen_periods_uniform(no_tasks, no_tasksets, min_period, max_period, True)
 
     current_sets = task_gen.gen_tasksets(utils_sets, period_sets, True)
-    print (len(current_sets))
     # sys.exit(1)
 
     first_schedl = 0
@@ -175,6 +187,7 @@ def main():
 
     done_tasksets = 0
     for single_set in current_sets:
+        num_iterations = 0
         budgets = [x[0] for x in single_set]
         periods = [x[1] for x in single_set]
 
@@ -186,6 +199,8 @@ def main():
         # we calculate end_to_end delay_ub as a factor of the summation of budgets
         e2e_delay_ub = int(sum(budgets) * e2e_delay_factor)
         print ("Sum Budgets: {}, E2E_UB: {}".format(sum(budgets), e2e_delay_ub))
+
+        alpha_cal = float(sum(budgets)) / (float(e2e_delay_ub) * ((pow(2, 1.0 / no_tasks) - 1 - 0.01)))
 
         equal_period = int(e2e_delay_ub / (no_tasks + 1))
         # for b in budgets:
@@ -201,7 +216,16 @@ def main():
             first_schedl += 1
         #Step 2
         else:
-            opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay_ub, starting_alpha = 2)
+            start = timer()
+            opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay_ub, starting_alpha = alpha_cal, ending_alpha = 2)
+            end = timer()
+
+            if opt_alpha > 1:
+                accepted_time_taken.append((end - start))
+                accepted_num_iterations.append(num_iterations)
+                print ("Alpha cal: :", alpha_cal)
+            else:
+                rejected_time_taken.append((end - start))
 
             if opt_alpha == 2:
                 second_schedl += 1
@@ -229,7 +253,13 @@ def main():
 
     print ("Unschedulable: {}/{}".format((no_tasksets - first_schedl - second_schedl - third_schedl), no_tasksets))
 
-    print ("E2E Factor:", e2e_delay_factor)
+    print ("Average Num Iteration for Accepted: ", float(sum(accepted_num_iterations)) / (first_schedl + second_schedl + third_schedl))
+
+    print ("Average Accepted Time Taken: ", float(sum(accepted_time_taken)) / (first_schedl + second_schedl + third_schedl))
+
+    print ("Average Rejected Time Taken: ", float(sum(rejected_time_taken)) / (no_tasksets - (first_schedl + second_schedl + third_schedl)))
+
+    print ("E2E Factor:", e2e_delay_factor, "Stretch Factor:", stretch_factor, "no tasks:", no_tasks)
 
 if __name__ == "__main__":
     main()

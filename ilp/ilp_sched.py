@@ -50,8 +50,8 @@ def create_model(budgets, e2e_delay_threshold):
     total_util = m.NewIntVar(10, 15000000, "total")
 
     m.Add(total_util == sum(divisions))
-    # m.Minimize(e2e_delay[no_tasks - 1] + periods[no_tasks - 1])
-    m.Minimize(total_util)
+    m.Minimize(e2e_delay[no_tasks - 1] + periods[no_tasks - 1])
+    m.Add(total_util <= 0.718)
 
     return m, periods, divisions
 
@@ -64,7 +64,7 @@ def main():
 
     total_util = 0.75
 
-    e2e_delay_factor = 8
+    e2e_delay_factor = 14
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 
@@ -74,7 +74,7 @@ def main():
 
     schedulable = 0
 
-    setfile_string = "../percent_" + str(total_util)
+    setfile_string = "../percent_" + str(total_util) + "_" + str(no_tasks)
 
     if not os.path.isfile(setfile_string):
         with open(setfile_string, "wb") as setfile:

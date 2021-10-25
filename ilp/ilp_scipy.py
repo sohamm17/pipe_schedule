@@ -43,7 +43,7 @@ def total_util(periods):
         if(periods[i] < 0):
             return -1
         sum += float(glob_budgets[i])/float(periods[i])
-    print (periods, sum)
+    # print (periods, sum)
     return (100 * sum)
 
 def rev_util_constraint(periods, budgets):
@@ -58,28 +58,28 @@ def solve_scipy(budgets, e2e_delay_threshold):
     no_tasks = len(budgets)
 
     # An initial guess of periods
-    periods_init = [int(b * 5) for b in budgets]
+    periods_init = [int(b * 400) for b in budgets]
     # print (budgets)
-    print (periods_init, 2 * sum(periods_init))
+    # print (periods_init, 2 * sum(periods_init))
 
     # bounds = Bounds ([b + 1 for b in budgets], [b * 99 for b in budgets])
 
-    bounds = [(b * 10, b * 10) for b in budgets]
+    bounds = [(b * 1.5, b * 20000) for b in budgets]
     # print (bounds)
 
     # con1 = {'type': 'ineq', 'fun': e2e_constraint, 'args': [e2e_delay_threshold]}
-    con2 = {'type': 'ineq', 'fun': util_constraint, 'args': [budgets]}
-    # glob_budgets = budgets
+    # con2 = {'type': 'ineq', 'fun': util_constraint, 'args': [budgets]}
+    glob_budgets = budgets
     # coefs = [2 for x in budgets]
     # con1 = LinearConstraint(coefs, [0], [e2e_delay_threshold])
-    # con2 = NonlinearConstraint(total_util, 0, 72)
+    con2 = NonlinearConstraint(total_util, 0, 71.8)
     cons = [con2]
 
     # sol = shgo(sample_sums, bounds, options={'minimize_every_iter': True, 'maxfev': 1})
 
     # sol = minimize(rev_util_constraint, periods_init, method='SLSQP', bounds=bounds, constraints=cons, args=(budgets), options={'eps': 60, 'maxiter': 500}, jac='2-point')
 
-    # sol = minimize(end_to_end_delay_durr_periods, periods_init, method='trust-constr', bounds=bounds, constraints=cons, options={'disp': True, 'maxiter': 5000})
+    sol = minimize(end_to_end_delay_durr_periods_orig, periods_init, method='trust-constr', bounds=bounds, constraints=cons, options={'disp': True, 'maxiter': 1500})
 
     # sol = minimize(e2e_constraint, periods_init, method='COBYLA', bounds=bounds, constraints=cons, args=(e2e_delay_threshold), options={'rhobeg': -60, 'maxiter': 5000})
 
@@ -96,7 +96,7 @@ def main():
 
     total_util = 0.75
 
-    e2e_delay_factor = 10
+    e2e_delay_factor = 16
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 
@@ -124,10 +124,9 @@ def main():
 
         solution = solve_scipy(budgets, e2e_delay_threshold)
 
-        if solution.success:
-            print (solution.x, "e2e: ", solution.fun, end_to_end_delay_durr_periods(solution.x), (2 * sum(solution.x)))
+        if solution.success and end_to_end_delay_durr_periods_orig(solution.x) <= e2e_delay_threshold and get_total_util_2(budgets, solution.x):
+            print (solution.x, "e2e: ", solution.fun, end_to_end_delay_durr_periods_orig(solution.x))
             schedulable += 1
-            break
 
         done_tasksets += 1
         print ("Schedulable: {}/{}".format(schedulable, done_tasksets))

@@ -17,6 +17,8 @@ def get_total_util_2(budgets, periods):
 returns the end-to-end delay of a pipeline
 """
 def end_to_end_delay(pipeline):
+    # Throw Error
+    a = pipeline['dummy']
     return sum([x[1] for x in pipeline])
 
 """
@@ -130,13 +132,13 @@ This is utilization bound test for RMS
 """
 def utilization_bound_test(tasks):
     total_util = get_total_util(tasks)
-    periods = [x[1] for x in tasks]
+    # periods = [x[1] for x in tasks]
     # if is_harmonic_periods(periods):
     #     return (total_util <= 1.0)
 
     no_tasks = len(tasks)
     bound = no_tasks * (pow(2, 1.0 / no_tasks) - 1)
-    return total_util <= 0.69
+    return total_util <= bound
 
 """
 This function makes taskset harmonic

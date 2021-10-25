@@ -10,7 +10,7 @@ def main():
     markers = ["s", "D", "o", "*", "v", "^"]
     linestyles = ['-', '--', '-', '--', '-', '--']
     colors = ['#ffcc99', '#ff9999', "#99cccc", 'r', 'k', 'm']
-    patterns = ['-', 'x', '\\', 'o', '.', 'O', '+']
+    
 
     distributed = []
     concentrated = []

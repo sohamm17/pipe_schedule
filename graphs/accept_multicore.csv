@@ -1,0 +1,3 @@
+,,Total Numbers of Runs,,,,,,,,,
+ID,Number of Cores,Acceptance,Accepted by Our Optimizer,Rejected by Heuristic,Rejected by Task Mapper,Total Pipelines,Tasks,Max E2E Factor,Min E2E Factor,Max Loss,Min Loss
+1,2,2,-,0,0,2,3,,,60,0

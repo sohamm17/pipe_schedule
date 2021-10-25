@@ -3,6 +3,7 @@ The Boomerang Scheduler Simulation
 In this one, I try Stage 2 one pipe only once and apply sequentially from first producer to last consumer and then come back again.
 '''
 
+from timeit import default_timer as timer
 import task_generator as task_gen
 
 import numpy as np
@@ -107,7 +108,7 @@ def main():
 
     total_util = 0.75
 
-    e2e_delay_factor = 14
+    e2e_delay_factor = 15
     alpha = 1.2
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)

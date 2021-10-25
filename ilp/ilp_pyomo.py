@@ -2,6 +2,7 @@ import task_generator as task_gen
 from utility import *
 import os, pickle, sys
 import numpy as np
+from pipeline import *
 
 from pyomo.environ import *
 from pyomo.opt import SolverStatus, TerminationCondition
@@ -84,8 +85,13 @@ def greater_rule(model, i):
     N = len(model.periods)
     return model.periods[i] >= model.periods[i - 1] if i < N else Constraint.Skip
 
+under_75 = 0
+under_50 = 0
+under_25 = 0
+under_0  = 0
+
 def solve_scipy(budgets, e2e_delay_threshold):
-    global glob_budgets
+    global glob_budgets, under_0, under_25, under_50, under_75
     global e2e_thr
     glob_budgets = budgets
     e2e_thr = e2e_delay_threshold
@@ -138,7 +144,7 @@ def solve_scipy(budgets, e2e_delay_threshold):
     model.UtilB = Constraint(rule=utilization_bound_test_non_harmo(taskset))
 
     # Increasing Period Constraint
-    model.Increasing_P = Constraint(model.tasks, rule=greater_rule)
+    # model.Increasing_P = Constraint(model.tasks, rule=greater_rule)
     # model.Increasing_P.pprint()
     # sys.exit(1)
 
@@ -180,6 +186,7 @@ def solve_scipy(budgets, e2e_delay_threshold):
 
 
 def main():
+    global under_0, under_25, under_50, under_75
     no_tasks = 10
     no_tasksets = 1000
 
@@ -218,15 +225,31 @@ def main():
         if results != None and (results.solver.status == SolverStatus.ok) and (results.solver.termination_condition == TerminationCondition.optimal):
             print ("PyomoE2E: ", end_to_end_delay_durr_periods_orig(periods))
             # print (periods, "e2e: ", solution.options.objfcnval, end_to_end_delay_durr_periods_orig(periods), get_total_util_2(budgets, periods))
-            if end_to_end_delay_durr_periods_orig(periods) <= e2e_delay_threshold and get_total_util_2(budgets, periods) <= 0.72:
+            final_taskset = [(budgets[i], periods[i]) for i in range(len(budgets))]
+            if end_to_end_delay_durr_periods_orig(periods) <= e2e_delay_threshold and get_total_util(final_taskset) <= 0.72:
                 print("Also Schedulable")
-                print (budgets, periods)
+                # print (budgets, periods)
                 schedulable += 1
+
+                lr = loss_rate_ub(final_taskset, budgets)
+                if lr <= 0:
+                    under_0 += 1
+                    # print ("0 Loss Rate:", final_taskset, budgets)
+                if lr <= 0.25:
+                    under_25 += 1
+                if lr <= 0.50:
+                    under_50 += 1
+                if lr <= 0.75:
+                    under_75 += 1
+
+                print ("LR: ", lr)
 
         done_tasksets += 1
         print ("Schedulable: {}/{}".format(schedulable, done_tasksets))
 
         print ("Unschedulable: {}/{}".format((done_tasksets - schedulable), done_tasksets))
+
+        print ("under_0, under_25, under_50, under_75: ", under_0, under_25, under_50, under_75)
 
     print ("Schedulable: {}/{}".format(schedulable, no_tasksets))
 
