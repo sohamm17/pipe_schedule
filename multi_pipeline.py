@@ -291,7 +291,7 @@ def main(argv):
     try:
         opts, args = getopt.getopt(argv, "p:t:r:c:")
     except getopt.GetoptError:
-        print ('python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of cores> -r <number of runs>')
+        print ('python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of processors> -r <number of runs>')
         sys.exit(2)
 
     no_tasks = 0

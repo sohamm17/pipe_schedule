@@ -61,6 +61,13 @@ def period_sum(model):
     # print ("objective:", tot)
     return tot
 
+def period_mult(model):
+    tot = 1
+    for i in range(1, len(model.periods)):
+        tot *= (model.periods[i - 1] / model.periods[i])
+    # print ("objective:", tot)
+    return tot
+
 def period_bound (model, i):
     return (glob_budgets[i] * 1.5, glob_budgets[i] * 20000)
 
@@ -90,7 +97,7 @@ under_50 = 0
 under_25 = 0
 under_0  = 0
 
-def solve_scipy(budgets, e2e_delay_threshold):
+def solve_pyomo(budgets, e2e_delay_threshold):
     global glob_budgets, under_0, under_25, under_50, under_75
     global e2e_thr
     glob_budgets = budgets
@@ -155,7 +162,7 @@ def solve_scipy(budgets, e2e_delay_threshold):
     # model.E2EObj = Objective(expr=end_to_end_delay_durr_periods_pyomo(model.periods, model.extra_periods), sense=minimize)
     # TransformationFactory('gdp.cuttingplane').apply_to(model)
     model.SUM = Objective(rule=period_sum, sense=minimize)
-
+    # model.LR = Objective(rule=period_mult, sense=minimize)
 
     # model.pprint()
 
@@ -195,7 +202,7 @@ def main():
 
     total_util = 0.75
 
-    e2e_delay_factor = 16
+    e2e_delay_factor = 18
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 
@@ -221,7 +228,7 @@ def main():
         e2e_delay_threshold = int(sum(budgets) * e2e_delay_factor)
         print ("E2E Threshold = ", e2e_delay_threshold)
 
-        results, periods = solve_scipy(budgets, e2e_delay_threshold)
+        results, periods = solve_pyomo(budgets, e2e_delay_threshold)
         if results != None and (results.solver.status == SolverStatus.ok) and (results.solver.termination_condition == TerminationCondition.optimal):
             print ("PyomoE2E: ", end_to_end_delay_durr_periods_orig(periods))
             # print (periods, "e2e: ", solution.options.objfcnval, end_to_end_delay_durr_periods_orig(periods), get_total_util_2(budgets, periods))

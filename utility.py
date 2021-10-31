@@ -6,90 +6,19 @@ returns total utilization of a task set
 def get_total_util(task_set):
     return np.sum([float(x[0]) / x[1] for x in task_set])
 
+"""
+This is a special total utilization function for GEKKO
+where we do not apply any float to python
+"""
+def get_total_util_gekko(task_set):
+    return np.sum([x[0] / x[1] for x in task_set])
+
 def get_total_util_2(budgets, periods):
     sum = 0
     for i in range(len(periods)):
         sum += float(budgets[i]) / periods[i]
     print ("utilprint ", sum)
     return sum
-
-"""
-returns the end-to-end delay of a pipeline
-"""
-def end_to_end_delay(pipeline):
-    # Throw Error
-    a = pipeline['dummy']
-    return sum([x[1] for x in pipeline])
-
-"""
-Durr et al.[2019] - End-to-end delay upper bound, response-time replaced by
-period
-"""
-def end_to_end_delay_durr(pipeline):
-    e2e_ub = 0
-    N = len(pipeline)
-    for i in range(0, N - 1):
-        # If next task is of lower priority (higher or equal period), then P = 0
-        P = (0 if pipeline[i + 1][1] >= pipeline[i][1] else 1)
-        e2e_ub += max(pipeline[i][1], pipeline[i + 1][1] + pipeline[i][1] * P)
-        # print (i, e2e_ub)
-    # add the period of first and last tasks
-    return (e2e_ub + pipeline[0][1] + pipeline[N - 1][1])
-
-
-def end_to_end_delay_durr_periods_gekko(periods):
-    e2e_ub = 0
-    N = len(periods)
-    print ("called", periods)
-    for i in range(0, N - 1):
-        # If next task is of lower priority (higher or equal period), then P = 0
-        if periods[i + 1].value >= periods[i].value:
-            e2e_ub += periods[i + 1].value
-        else:
-            e2e_ub += periods[i + 1].value + periods[i].value
-        # print (i, e2e_ub)
-    # add the period of first and last tasks
-    # print (periods, "E2E: ", int(e2e_ub + periods[0] + periods[N - 1]))
-    return int(e2e_ub + periods[0].value + periods[N - 1].value)
-
-# Only periods are provided
-def end_to_end_delay_durr_periods(periods, m):
-    N = len(periods)
-    e2e_ub = periods[0] + periods[N - 1]
-    # print ("called2", periods)
-    for i in range(0, N - 1):
-        # If next task is of lower priority (higher or equal period), then P = 0
-        e2e_ub += m.if3(periods[i + 1] - periods[i], periods[i + 1] + periods[i], periods[i + 1])
-        # print (i, e2e_ub)
-    # add the period of first and last tasks
-    # print (periods, "E2E: ", int(e2e_ub + periods[0] + periods[N - 1]))
-    # print ("c2", e2e_ub + periods[0] + periods[N - 1])
-    return e2e_ub
-
-def end_to_end_delay_durr_periods_orig(periods):
-    e2e_ub = 0
-    N = len(periods)
-    for i in range(0, N - 1):
-        # If next task is of lower priority (higher or equal period), then P = 0
-        if periods[i + 1] >= periods[i]:
-            e2e_ub += periods[i + 1]
-        else:
-            e2e_ub += periods[i + 1] + periods[i]
-        # print (i, e2e_ub)
-    # add the period of first and last tasks
-    # print (periods, "E2E: ", int(e2e_ub + periods[0] + periods[N - 1]))
-    return e2e_ub + periods[0] + periods[N - 1]
-
-def end_to_end_delay_durr_periods_pyomo(periods, extra_periods):
-    N = len(periods)
-    e2e_ub = periods[0] + periods[N - 1]
-    for i in range(0, N - 1):
-        # If next task is of lower priority (higher or equal period), then P = 0
-        e2e_ub += periods[i + 1] + extra_periods[i]
-        # print (i, e2e_ub)
-    # add the period of first and last tasks
-    # print (periods, "E2E: ", int(e2e_ub + periods[0] + periods[N - 1]))
-    return e2e_ub
 
 """
 returns RMS bound limit for a value of N
@@ -113,7 +42,7 @@ def is_harmonic_periods(periods):
     return True
 
 def utilization_bound_gekko(tasks, m, periods):
-    total_util = get_total_util (tasks)
+    total_util = get_total_util_gekko (tasks)
 
     no_tasks = len(tasks)
     bound = no_tasks * (pow(2, 1.0 / no_tasks) - 1)

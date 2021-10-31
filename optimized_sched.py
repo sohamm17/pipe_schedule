@@ -68,7 +68,7 @@ def optimize_alpha_live(budgets, e2e_delay, loss_rate_bound, try_util_bound, sta
                         # print (taskset2)
                         taskset = copy.deepcopy(taskset2)
                         # taskset = make_taskset_harmonic(taskset)
-                        i += 1
+                        # i += 1 - Do not skip for successful ones
                         at_least_one_pipe_changed = True
                         if end_to_end_delay_durr(taskset) <= e2e_delay and loss_rate_ub(taskset, budgets) <= loss_rate_bound:
                             schedulable = True
@@ -104,7 +104,7 @@ def optimize_alpha_live(budgets, e2e_delay, loss_rate_bound, try_util_bound, sta
                 # print ("3rd U:", get_total_util(taskset), end_to_end_delay_durr(taskset), loss_rate_ub(taskset, budgets))
 
                 taskset[i] = (cur_budget, cur_period)
-                taskset = make_taskset_harmonic(taskset)
+                # taskset = make_taskset_harmonic(taskset)
                 # print ("After Third Stage: ", end_to_end_delay_durr(taskset), loss_rate_ub(taskset, budgets), get_total_util(taskset))
                 # print (taskset)
                 if end_to_end_delay_durr(taskset) <= e2e_delay and loss_rate_ub(taskset, budgets) <= loss_rate_bound:

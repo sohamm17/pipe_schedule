@@ -11,14 +11,109 @@ def task_util(task):
 # GEKKO = 0
 model = None
 
+# """
+# returns the end-to-end delay of a pipeline
+# """
+# def end_to_end_delay(pipeline):
+#     # Throw Error
+#     a = pipeline['dummy']
+#     return sum([x[1] for x in pipeline])
+
+"""
+Durr et al.[2019] - End-to-end delay upper bound:
+response-time replaced by period
+"""
+def end_to_end_delay_durr(pipeline):
+    e2e_ub = 0
+    N = len(pipeline)
+    for i in range(0, N - 1):
+        # If next task is of lower priority (higher or equal period), then P = 0
+        I = (0 if pipeline[i + 1][1] >= pipeline[i][1] else 1)
+        e2e_ub += max(pipeline[i][1], pipeline[i + 1][1] + pipeline[i][1] * I)
+        # print (i, e2e_ub)
+    # add the period of first and last tasks
+    return (e2e_ub + pipeline[0][1] + pipeline[N - 1][1])
+
+
+"""
+An old E2E Delay implementation for GEKKO - Not used anymore
+"""
+def end_to_end_delay_durr_periods_gekko(periods):
+    e2e_ub = 0
+    N = len(periods)
+    print ("called", periods)
+    for i in range(0, N - 1):
+        # If next task is of lower priority (higher or equal period), then P = 0
+        if periods[i + 1].value >= periods[i].value:
+            e2e_ub += periods[i + 1].value
+        else:
+            e2e_ub += periods[i + 1].value + periods[i].value
+        # print (i, e2e_ub)
+    # add the period of first and last tasks
+    # print (periods, "E2E: ", int(e2e_ub + periods[0] + periods[N - 1]))
+    return int(e2e_ub + periods[0].value + periods[N - 1].value)
+
+"""
+A GEKKO model is provided as a second argument
+"""
+def end_to_end_delay_durr_GEKKO(periods, m):
+    N = len(periods)
+    e2e_ub = periods[0] + periods[N - 1]
+    # print ("called2", periods)
+    for i in range(0, N - 1):
+        # If next task is of lower priority (higher or equal period), then P = 0
+        e2e_ub += m.if3(periods[i + 1] - periods[i], periods[i + 1] + periods[i], periods[i + 1])
+        # print (i, e2e_ub)
+    # add the period of first and last tasks
+    # print (periods, "E2E: ", int(e2e_ub + periods[0] + periods[N - 1]))
+    # print ("c2", e2e_ub + periods[0] + periods[N - 1])
+    return e2e_ub
+
+"""
+This is the function used by most solvers to calculate end-to-end delay upper bound.
+"""
+def end_to_end_delay_durr_periods_orig(periods):
+    e2e_ub = 0
+    N = len(periods)
+    for i in range(0, N - 1):
+        # If next task is of lower priority (higher or equal period), then I = 0
+        if periods[i + 1] >= periods[i]:
+            e2e_ub += periods[i + 1]
+        else:
+            e2e_ub += periods[i + 1] + periods[i]
+        # print (i, e2e_ub)
+    # add the period of first and last tasks
+    # print (periods, "E2E: ", int(e2e_ub + periods[0] + periods[N - 1]))
+    return int(e2e_ub + periods[0] + periods[N - 1])
+
+"""
+A trial end-to-end delay calculation for pyomo
+"""
+def end_to_end_delay_durr_periods_pyomo(periods, extra_periods):
+    N = len(periods)
+    e2e_ub = periods[0] + periods[N - 1]
+    for i in range(0, N - 1):
+        # If next task is of lower priority (higher or equal period), then P = 0
+        e2e_ub += periods[i + 1] + extra_periods[i]
+        # print (i, e2e_ub)
+    # add the period of first and last tasks
+    # print (periods, "E2E: ", int(e2e_ub + periods[0] + periods[N - 1]))
+    return e2e_ub
+
 def sample_rate_lb_helper(budgets, periods, initial_budgets, GEKKO=0):
     fx = 1 # Sampling Rate
     N = len(budgets)
     if N == 1:
+        if GEKKO:
+            return GEKKO.Const(1)
         return 1
     elif N == 2:
-        budget_multiplier_producer = budgets[0] // initial_budgets[0]
-        budget_multiplier_consumer = budgets[1] // initial_budgets[1]
+        if GEKKO:
+            budget_multiplier_producer = budgets[0] / initial_budgets[0]
+            budget_multiplier_consumer = budgets[1] / initial_budgets[1]
+        else:
+            budget_multiplier_producer = budgets[0] // initial_budgets[0]
+            budget_multiplier_consumer = budgets[1] // initial_budgets[1]
         fx = (1.0 * periods[0]/periods[1]) * (budget_multiplier_consumer / budget_multiplier_producer)
         # print ("L: ", N, fx)
         return fx
@@ -33,12 +128,16 @@ def sample_rate_lb_helper(budgets, periods, initial_budgets, GEKKO=0):
         second_last_initial_budget = initial_budgets[N - 2]
         last_initial_budget = initial_budgets[N - 1]
 
-        second_last_initial_budget_multipl = second_last_budget // second_last_initial_budget
-
-        last_initial_budget_multipl = last_budget // last_initial_budget
+        if GEKKO:
+            second_last_initial_budget_multipl = second_last_budget / second_last_initial_budget
+            last_initial_budget_multipl = last_budget / last_initial_budget
+        else:
+            second_last_initial_budget_multipl = second_last_budget // second_last_initial_budget
+            last_initial_budget_multipl = last_budget // last_initial_budget
 
         if GEKKO:
-            is_oversample = GEKKO.if3(second_last_period - last_period, 0, 1)
+            # is_oversample = GEKKO.if2(second_last_period - last_period, GEKKO.Const(0), GEKKO.Const(1))
+            a = 1
         else:
             is_oversample = True if last_period <= second_last_period else False
 
@@ -46,8 +145,9 @@ def sample_rate_lb_helper(budgets, periods, initial_budgets, GEKKO=0):
         last_sampling_rate = ((1.0 * second_last_period) / last_period) * (last_initial_budget_multipl / second_last_initial_budget_multipl)
 
         if GEKKO:
-            temp = GEKKO.if3(prev_pipeline_fx - 1, 1, 0)
-            fx = GEKKO.if3(temp + is_oversample - 2, prev_pipeline_fx * last_sampling_rate, prev_pipeline_fx)
+            # print ("Prev:",  prev_pipeline_fx)
+            # temp = GEKKO.if2(prev_pipeline_fx - 1.0, GEKKO.Const(1), GEKKO.Const(0))
+            fx = GEKKO.if3((1 - prev_pipeline_fx) / 100.0 * (second_last_period - last_period) + (second_last_period - last_period), prev_pipeline_fx * last_sampling_rate, prev_pipeline_fx)
         else:
             if (prev_pipeline_fx < 1 and is_oversample): # Case 1
                 fx = prev_pipeline_fx
@@ -86,7 +186,7 @@ def loss_rate_ub_GEKKO(pipeline, initial_budgets, m):
     model = m
     sr = sample_rate_lb(pipeline, initial_budgets, GEKKO=m)
     lr = model.if3(1 - sr, 0, (1 - sr))
-    return lr
+    return lr, sr
 
 """
 This calculates the minimum throughput of a Pipeline

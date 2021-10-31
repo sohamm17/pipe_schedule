@@ -53,6 +53,24 @@ def sample_sums(periods):
     print (periods, sum(periods))
     return sum(periods)
 
+def check_negative (list_val):
+    for x in list_val:
+        if x < 0:
+            return 1
+    return 0
+
+def gradient_respecting_bounds(bounds, fun, eps=1e-8):
+    """bounds: list of tuples (lower, upper)"""
+    def gradient(x):
+        fx = fun(x)
+        grad = np.zeros(len(x))
+        for k in range(len(x)):
+            d = np.zeros(len(x))
+            d[k] = eps if x[k] + eps <= bounds[k][1] else -eps
+            grad[k] = (fun(x + d) - fx) / d[k]
+        return grad
+    return gradient
+
 def solve_scipy(budgets, e2e_delay_threshold):
     global glob_budgets
     no_tasks = len(budgets)
@@ -63,8 +81,10 @@ def solve_scipy(budgets, e2e_delay_threshold):
     # print (periods_init, 2 * sum(periods_init))
 
     # bounds = Bounds ([b + 1 for b in budgets], [b * 99 for b in budgets])
-
-    bounds = [(b * 1.5, b * 20000) for b in budgets]
+    #
+    # True is keep_feasible=True
+    bounds = [(b, np.inf) for b in budgets]
+    actual_bounds = Bounds ([b for b in budgets], [np.inf for b in budgets])
     # print (bounds)
 
     # con1 = {'type': 'ineq', 'fun': e2e_constraint, 'args': [e2e_delay_threshold]}
@@ -79,7 +99,7 @@ def solve_scipy(budgets, e2e_delay_threshold):
 
     # sol = minimize(rev_util_constraint, periods_init, method='SLSQP', bounds=bounds, constraints=cons, args=(budgets), options={'eps': 60, 'maxiter': 500}, jac='2-point')
 
-    sol = minimize(end_to_end_delay_durr_periods_orig, periods_init, method='trust-constr', bounds=bounds, constraints=cons, options={'disp': True, 'maxiter': 1500})
+    sol = minimize(end_to_end_delay_durr_periods_orig, periods_init, method='trust-constr', bounds=actual_bounds, constraints=cons, options={'disp': True, 'maxiter': 5000}, jac=gradient_respecting_bounds(bounds, end_to_end_delay_durr_periods_orig))
 
     # sol = minimize(e2e_constraint, periods_init, method='COBYLA', bounds=bounds, constraints=cons, args=(e2e_delay_threshold), options={'rhobeg': -60, 'maxiter': 5000})
 
@@ -96,7 +116,7 @@ def main():
 
     total_util = 0.75
 
-    e2e_delay_factor = 16
+    e2e_delay_factor = 18
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 
@@ -126,6 +146,10 @@ def main():
 
         if solution.success and end_to_end_delay_durr_periods_orig(solution.x) <= e2e_delay_threshold and get_total_util_2(budgets, solution.x):
             print (solution.x, "e2e: ", solution.fun, end_to_end_delay_durr_periods_orig(solution.x))
+            schedulable += 1
+            if check_negative(solution.x):
+                print ("bad value")
+                continue
             schedulable += 1
 
         done_tasksets += 1

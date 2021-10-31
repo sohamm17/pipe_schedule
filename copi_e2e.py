@@ -1,11 +1,7 @@
 '''
-
-In this one, I try Stage 2 one pipe only once and apply sequentially from first producer to last consumer and then come back again.
-
 -- This is more optimized version to make tasksets harmonic
 '''
 
-from timeit import default_timer as timer
 import task_generator as task_gen
 
 import numpy as np
@@ -15,6 +11,7 @@ import sys, os, pickle, getopt
 from utility import *
 from pipeline import *
 import copy, random
+from timeit import default_timer as timer
 
 num_iterations = 0
 
@@ -122,12 +119,13 @@ def main(argv):
     rejected_time_taken = []
     no_tasks = -1
     nlbg = 1.5
+    usage = 'Usage: python copi_e2e.py -n <number of tasks> -x <NLBG, default is 1.5>'
 
     try:
         opts, args = getopt.getopt(argv, "n:x:")
     except getopt.GetoptError:
-        print ('Usage: python runtime_measure.py -n <number of tasks> -x <NLBG>')
-        sys.exit(2)
+        print (usage)
+        sys.exit(1)
 
     for opt, arg in opts:
         if opt == '-n':
@@ -136,14 +134,22 @@ def main(argv):
             nlbg = float(arg)
 
     if no_tasks < 1:
-        print ("Number of tasks missing.")
+        print ("Number of tasks is missing.")
+        print (usage)
+        sys.exit(1)
 
-    print ("NLBG {}".format(nlbg))
+    if nlbg < 1:
+        print ("NLBG should be more than 1.")
+        print (usage)
+        sys.exit(1)
+
+    print (f"NLBG = {nlbg:.2f}")
+
     no_tasksets = 1000
 
     total_util = 0.75
 
-    e2e_delay_factor = no_tasks * nlbg
+    e2e_delay_factor = no_tasks * nlbg #LBG
 
     min_period = 100
     max_period = 1000
