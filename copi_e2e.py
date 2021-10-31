@@ -255,18 +255,18 @@ def main(argv):
     avg_accept_time = int(1000 * float(sum(accepted_time_taken)) / total_sched_able)
     print ("Average Accepted Time Taken: ", avg_accept_time, "ms")
 
+    with open("scheduled_times_copi.txt", "a") as f:
+        f.write("{} ".format(avg_accept_time))
+
     if total_sched_able < no_tasksets:
         avg_failed_time = int(1000 * float(sum(rejected_time_taken)) / (no_tasksets - total_sched_able))
 
-        with open("failed_time.txt", "a") as f:
+        with open("failed_times_copi.txt", "a") as f:
             f.write("{} ".format(avg_failed_time))
 
         print ("Average Rejected Time Taken: ", avg_failed_time, "ms")
 
     print ("E2E Factor:", e2e_delay_factor, "NLBG:", nlbg, "no tasks:", no_tasks)
-
-    with open("accepted_time.txt", "a") as f:
-        f.write("{} ".format(avg_accept_time))
 
 if __name__ == "__main__":
     main(sys.argv[1:])

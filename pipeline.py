@@ -216,10 +216,13 @@ def GetPipelineBudgets(no_pipelines, no_tasks, seed):
         min_period = 100
         max_period = 1000
 
-        utils_sets = task_gen.gen_uunifastdiscard(no_pipelines, 0.15, no_tasks)
+        # Generate utilization
+        utils_sets = task_gen.gen_uunifastdiscard(no_pipelines, 0.75, no_tasks)
 
+        # Choose random a random period value
         period_sets = task_gen.gen_periods_uniform(no_tasks, no_pipelines, min_period, max_period, True)
 
+        # Generate the initial task budgets
         current_sets = task_gen.gen_tasksets(utils_sets, period_sets, True)
 
         for i in range(no_pipelines):
@@ -230,7 +233,10 @@ def GetPipelineBudgets(no_pipelines, no_tasks, seed):
 
         with open(setfile_string, "wb") as setfile:
             pickle.dump(pipeline_budgets, setfile)
+
+        print ("Saved new dataset: ", setfile_string)
     else:
+        print ("Opening existing dataset: ", setfile_string)
         with open(setfile_string, "rb") as setfile:
             # return None
             pipeline_budgets = pickle.load(setfile)

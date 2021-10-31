@@ -1,4 +1,4 @@
-## Artifact of "End-to-end Scheduling of Real-time Task Pipelines on Multiprocessors"
+# Artifacts of "End-to-end Scheduling of Real-time Task Pipelines on Multiprocessors"
 
 ### Constraint Solvers
 
@@ -88,14 +88,57 @@ All the data will be appended to `accepted_sets_gekko.txt`.
 ```
 All the data will be appended to `accepted_sets_gekko.txt`.
 
-<!-- ### Solver Runtime Overhead -->
+### Solver Runtime Overhead
 
-<!-- ### CoPi Performance Insight -->
+1. CoPi's runtime vs pipeline length experiment (Figure 9a):
+```
+./time_measure_copi_pipelength.sh
+```
+The results are available in `scheduled_times_copi.txt` and `failed_times_copi.txt` in space separated format.
+
+2. Run `CoPi` experiments for Figure 9b and 9c:
+```
+./run_solver_exp2_copi.sh
+```
+3. Run `GEKKO` experiments for Figure 9b and 9c:
+```
+./run_solver_exp2_gekko.sh
+```
+
+### CoPi Performance Insight
+
+CoPi's AR vs.  pipeline length and NLBG
+
+```
+./run_perform_insight.sh
+```
 
 ### Multiprocessor Experiments
 
 Multiprocessor experiments are run by the following command:
 
+Run the processor based experiments with the following script:
+
+```
+./run_multiproc_2cores.sh
+./run_multiproc_4cores.sh
+./run_multiproc_8cores.sh
+```
+
 ```
 python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of processors> -r <number of runs>
 ```
+
+##### Utilization Experiments and Results:
+```
+./run_util.sh
+```
+The result is written to `multi_util_result.txt`.
+
+##### Migration Experiments:
+
+```
+./run_mig.sh
+```
+
+The result is written to `migrations_result.txt`.

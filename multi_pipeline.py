@@ -17,7 +17,6 @@ num_cores = 4
 core_avl_util = [(0, 0.69), (1, 0.69), (2, 0.69), (3, 0.69), (4, 0.69), (5, 0.69), (6, 0.69), (7, 0.69)]
 
 tasks_in_cores = []
-
 running_pipelines = []
 
 number_of_migrations = 0
@@ -30,31 +29,56 @@ MAX_E2E_FACTOR = 8
 MIN_LOSS_FACTOR = 50
 MAX_LOSS_FACTOR = 80
 
-MIGRATION = True
-ONLINE_ADJUSTMENT = True
+MIGRATION = False # Runtime Task Migration
+ONLINE_ADJUSTMENT = False # Runtime Pipeline Optimization (RPO)
 
 # Initialize global variables
 def init():
     global core_avl_util, tasks_in_cores, number_of_migrations, number_of_migrations
-    core_avl_util = [(0, 0.69), (1, 0.69), (2, 0.69), (3, 0.69), (4, 0.69), (5, 0.69), (6, 0.69), (7, 0.69)]
+    core_avl_util = [(i, 0.69) for i in range(8)]
     tasks_in_cores = []
     running_pipelines = []
     number_of_migrations = 0
-    number_of_migrations = 0
 
-def set_cores (number_of_cores):
+SAVED_core_avl_util = []
+SAVED_tasks_in_cores = []
+SAVED_running_pipelines = []
+SAVED_number_of_migrations = []
+
+def save_old_proc_state():
+    SAVED_core_avl_util = copy.deepcopy(core_avl_util)
+    SAVED_tasks_in_cores = copy.deepcopy(tasks_in_cores)
+    SAVED_running_pipelines = copy.deepcopy(running_pipelines)
+    SAVED_number_of_migrations = copy.deepcopy(number_of_migrations)
+
+def restore_old_proc_state():
+    core_avl_util = SAVED_core_avl_util
+    tasks_in_cores = SAVED_tasks_in_cores
+    running_pipelines = SAVED_running_pipelines
+    number_of_migrations = SAVED_number_of_migrations
+
+def set_cores (num_procs):
     global num_cores, core_avl_util, tasks_in_cores
-    num_cores = number_of_cores
+    num_cores = num_procs
     core_avl_util = core_avl_util[:num_cores]
-    for i in range(number_of_cores):
+    for i in range(num_procs):
         tasks_in_cores.append([])
 
 def set_e2e_factor(no_tasks):
     global MIN_E2E_FACTOR, MAX_E2E_FACTOR
-    # 1.7-1.8 for 5 tasks. 1.7-2.1 for 3 tasks.
-    MIN_E2E_FACTOR = 1.7
-    MAX_E2E_FACTOR = 1.8
-    print ("MIN_E2E_FACTOR, MAX_E2E_FACTOR: ", MIN_E2E_FACTOR, MAX_E2E_FACTOR)
+    # 1.5-1.7 for 10 tasks 1.7-1.8 for 5 tasks. 1.6-2.1 for 3 tasks.
+    if no_tasks == 3:
+        MIN_E2E_FACTOR = 1.6
+        MAX_E2E_FACTOR = 2.1
+    elif no_tasks == 5:
+        MIN_E2E_FACTOR = 1.65
+        MAX_E2E_FACTOR = 1.85
+    elif no_tasks == 10:
+        MIN_E2E_FACTOR = 1.5
+        MAX_E2E_FACTOR = 1.7
+    else:
+        MIN_E2E_FACTOR = 1.6
+        MAX_E2E_FACTOR = 1.8
 
 def get_core_avl_util(core_no):
     for core in core_avl_util:
@@ -108,6 +132,8 @@ def unmap_task_from_core(core_no, task):
 # qualified pipelines are given
 def remove_pipeline(q_pipeline):
     for a_task in q_pipeline['tasks']:
+        # print (a_task)
+        # print(running_pipelines)
         unmap_task_from_core(a_task['core'], a_task)
     i = 0
     for p in running_pipelines:
@@ -274,10 +300,24 @@ def adjust_existing_pipeline(heur_reject=True, start=0):
             if new_taskset is not None:
                 # print (new_taskset, opti, get_total_util(new_taskset), cur_util)
                 saved_pipeline = copy.deepcopy(pipeline)
+                save_old_proc_state()
                 remove_pipeline(pipeline)
                 returned_pipeline = pipeline_with_init_budgets(new_taskset, get_init_budgets(saved_pipeline['tasks']), e2e_ub, lr_ub)
-                running_pipelines.append(returned_pipeline)
-                return WFD_FIT(returned_pipeline)
+                # print ("Before:", returned_pipeline)
+                saved_return_val = WFD_FIT(returned_pipeline)
+                if saved_return_val:
+                    running_pipelines.append(returned_pipeline)
+                    # print (running_pipelines)
+                    # print ("After:", returned_pipeline)
+                    # sys.exit(1)
+                else:
+                    # print ("disaster: old pipeline is not remappable")
+                    # print ("Old pipeline:", saved_pipeline)
+                    # print ("Disaster:", running_pipelines)
+                    restore_old_proc_state()
+                    # print ("Saved from disaster:", running_pipelines)
+                    # sys.exit(1)
+                return saved_return_val
                 # sys.exit(1)
             # return True
     return False
@@ -287,11 +327,11 @@ def get_average(the_list):
     return float(sum(the_list)) / len(the_list)
 
 def main(argv):
-    global num_cores, core_avl_util, tasks_in_cores, running_pipelines, number_of_migrations, number_of_unsuccess_migrations, ONLINE_ADJUSTMENT
+    global num_cores, core_avl_util, tasks_in_cores, running_pipelines, number_of_migrations, number_of_unsuccess_migrations, ONLINE_ADJUSTMENT, MIGRATION
 
-    usage = "python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of processors> -r <number of runs>"
+    usage = "python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of processors> -r <number of runs> -m <enable migration 0/1> -o <enable RPO 0/1>"
     try:
-        opts, args = getopt.getopt(argv, "p:t:r:c:")
+        opts, args = getopt.getopt(argv, "p:t:r:c:m:o:")
     except getopt.GetoptError:
         print (usage)
         sys.exit(2)
@@ -299,7 +339,7 @@ def main(argv):
     no_tasks = 0
     no_pipelines = 0
     runs = 0
-    number_of_cores = 0
+    num_procs = 0
     for opt, arg in opts:
         if opt == '-p':
             no_pipelines = int(arg)
@@ -308,9 +348,13 @@ def main(argv):
         elif opt == '-r':
             runs = int(arg)
         elif opt == '-c':
-            number_of_cores = int(arg)
+            num_procs = int(arg)
+        elif opt == '-m':
+            MIGRATION = int(arg)
+        elif opt == '-o':
+            ONLINE_ADJUSTMENT = int(arg)
 
-    if not number_of_cores or not runs or not no_pipelines or not no_tasks:
+    if not num_procs or not runs or not no_pipelines or not no_tasks:
         print ("invalid inpit")
         print (usage)
         sys.exit(1)
@@ -330,13 +374,15 @@ def main(argv):
 
     for run_id in range(runs):
         print ("RUN ID -----------------------", run_id)
+        # if run_id != 9:
+        #     continue
         init()
         ID = 0 # TASK ID
         PIPELINE_ID = 0
 
         SEED = 50 * run_id
         random.seed(SEED)
-        set_cores(number_of_cores)
+        set_cores(num_procs)
         set_e2e_factor(no_tasks)
 
         pipeline_budgets = GetPipelineBudgets(no_pipelines, no_tasks, SEED)
@@ -398,8 +444,17 @@ def main(argv):
         total_migrations.append(number_of_migrations)
         total_unsuccess_migrations.append(number_of_unsuccess_migrations)
 
-    print ("total runs", runs, "-- <mapped pipelines, heuristic rejections, mapper rejections, optimized2/3 stage, used core utilization>:")
+    print ("total runs", runs, "-- <mapped pipelines, heuristic rejections, mapper rejections, optimized2/3 stage, used core utilization, avg migrations, avg unsuccess migrations>:")
     print (get_average(mapped_pipelines_all_runs), get_average(heuristic_rejections), get_average(mapper_rejections), get_average(optimized23_pipelines), get_average(used_core_utils), get_average(total_migrations), get_average(total_unsuccess_migrations))
+
+    with open("accepted_multiproc_" + str(num_procs) + "_" + str(no_tasks) + ".txt", "a") as f:
+        f.write(f"{sum(mapped_pipelines_all_runs)} ")
+
+    with open("normutil_" + str(no_tasks) + ".txt", "a") as f:
+        f.write(f"{(100 * get_average(used_core_utils)/num_procs):.1f} ")
+
+    with open("migrations_" + str(num_procs) + ".txt", "a") as f:
+        f.write(f"{get_average(total_migrations)} ")
 
     return True
 
