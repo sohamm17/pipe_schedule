@@ -288,10 +288,12 @@ def get_average(the_list):
 
 def main(argv):
     global num_cores, core_avl_util, tasks_in_cores, running_pipelines, number_of_migrations, number_of_unsuccess_migrations, ONLINE_ADJUSTMENT
+
+    usage = "python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of processors> -r <number of runs>"
     try:
         opts, args = getopt.getopt(argv, "p:t:r:c:")
     except getopt.GetoptError:
-        print ('python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of processors> -r <number of runs>')
+        print (usage)
         sys.exit(2)
 
     no_tasks = 0
@@ -307,6 +309,16 @@ def main(argv):
             runs = int(arg)
         elif opt == '-c':
             number_of_cores = int(arg)
+
+    if not number_of_cores or not runs or not no_pipelines or not no_tasks:
+        print ("invalid inpit")
+        print (usage)
+        sys.exit(1)
+
+    if no_tasks != 3 and no_tasks != 5 and no_tasks != 10:
+        print ("no of tasks needs to be 3, 5 or 10.")
+        print (usage)
+        sys.exit(1)
 
     mapper_rejections = []
     heuristic_rejections = []
@@ -386,7 +398,7 @@ def main(argv):
         total_migrations.append(number_of_migrations)
         total_unsuccess_migrations.append(number_of_unsuccess_migrations)
 
-    print ("total runs", runs, "-- mapped pipelines, heuristic rejections, mapper rejections, optimized2/3 stage, used core utilization:")
+    print ("total runs", runs, "-- <mapped pipelines, heuristic rejections, mapper rejections, optimized2/3 stage, used core utilization>:")
     print (get_average(mapped_pipelines_all_runs), get_average(heuristic_rejections), get_average(mapper_rejections), get_average(optimized23_pipelines), get_average(used_core_utils), get_average(total_migrations), get_average(total_unsuccess_migrations))
 
     return True

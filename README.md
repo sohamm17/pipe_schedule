@@ -55,19 +55,47 @@ The next subsections correspond to the subsections in the Evaluation section of 
 ```
 ./run_exp1_gekko.sh
 ```
+
 3. Run all the experiments for `pyomo (IPOPT)`:
 ```
 ./run_exp1_pyomo.sh
 ```
+
 4. Run all the experiments for `scipy (trust-constr)`:
 ```
 ./run_exp1_scipy.sh
 ```
+##### Result
+All the data will be written to `accepted_sets_<solver>.txt` in space separated format for *LBG* = {11, 12, 14, 15, 16, 18}. For example, `accepted_sets_copi.txt`
 
 #### Both End-to-end and Loss-rate Constraints
 
-### Solver Runtime Overhead
+1. Generate CoPi data points by the following script:
+```
+./run_loss_rate_copi.sh
+```
+The `accepted_lr_copi.txt` will have the number of accepted (schedulable) pipelines in space separated format for {0, 25, 50, 75}% loss-rate
 
-### Performance Insight of CoPi
+2. Generate GEKKO data points by the following script:
+```
+./run_gekko_lr.sh
+```
+All the data will be appended to `accepted_sets_gekko.txt`.
+
+3. Generate GEKKO (with BAC) data points by the following script:
+```
+./run_gekko_lr_bac.sh
+```
+All the data will be appended to `accepted_sets_gekko.txt`.
+
+<!-- ### Solver Runtime Overhead -->
+
+<!-- ### CoPi Performance Insight -->
 
 ### Multiprocessor Experiments
+
+Multiprocessor experiments are run by the following command:
+
+```
+python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of processors> -r <number of runs>
+```

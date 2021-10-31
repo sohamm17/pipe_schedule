@@ -1,20 +1,10 @@
 import task_generator as task_gen
 from utility import *
 from pipeline import *
-import os, pickle
+import os, pickle, sys, random, getopt
 
 from scipy.optimize import Bounds, minimize, NonlinearConstraint, shgo, LinearConstraint, differential_evolution, brute
 import numpy as np
-
-def e2e_constraint(periods, threshold):
-    print ("periods ", periods)
-    print ("e2e", end_to_end_delay_durr_periods(periods))
-    diff = (threshold - end_to_end_delay_durr_periods(periods))
-    return (threshold - end_to_end_delay_durr_periods(periods))
-    # if diff >= 0:
-    #     return (threshold - end_to_end_delay_durr_periods(periods))
-    # else:
-    #     return -np.Inf
 
 def util_constraint(periods, budgets):
     taskset = []
@@ -72,12 +62,20 @@ def gradient_respecting_bounds(bounds, fun, eps=1e-8):
         return grad
     return gradient
 
+
+E2E_Threshold = -1
+
+def e2e_constraint(periods):
+    return abs(end_to_end_delay_durr_periods_orig(periods) - E2E_Threshold)
+
 def solve_scipy(budgets, e2e_delay_threshold):
-    global glob_budgets
+    global glob_budgets, E2E_Threshold
+    E2E_Threshold = e2e_delay_threshold
+
     no_tasks = len(budgets)
 
     # An initial guess of periods
-    periods_init = [int(b * 400) for b in budgets]
+    periods_init = [int(b) for b in budgets]
     # print (budgets)
     # print (periods_init, 2 * sum(periods_init))
 
@@ -100,13 +98,31 @@ def solve_scipy(budgets, e2e_delay_threshold):
 
     # sol = minimize(rev_util_constraint, periods_init, method='SLSQP', bounds=bounds, constraints=cons, args=(budgets), options={'eps': 60, 'maxiter': 500}, jac='2-point')
 
-    sol = minimize(end_to_end_delay_durr_periods_orig, periods_init, method='trust-constr', bounds = bounds, constraints=cons, options={'disp': True, 'maxiter': 70000})
+    sol = minimize(e2e_constraint, periods_init, method='trust-constr', bounds = actual_bounds, constraints=cons, options={'disp': True, 'maxiter': 2000})
 
     # sol = minimize(e2e_constraint, periods_init, method='COBYLA', bounds=bounds, constraints=cons, args=(e2e_delay_threshold), options={'rhobeg': -60, 'maxiter': 5000})
-    
+
     return sol
 
-def main():
+def main(argv):
+    e2e_delay_factor = -1
+    usage = 'Usage: python ilp/ilp_scipy.py -e <LBG>'
+
+    try:
+        opts, args = getopt.getopt(argv, "e:")
+    except getopt.GetoptError:
+        print (usage)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-e':
+            e2e_delay_factor = float(arg)
+
+    if e2e_delay_factor == -1:
+        print ("E2E Delay UB in the form of Latency Budget Gap (LBG) is not provided.")
+        print (usage)
+        sys.exit(2)
+
     no_tasks = 10
     no_tasksets = 1000
 
@@ -114,8 +130,6 @@ def main():
     max_period = 1000
 
     total_util = 0.75
-
-    e2e_delay_factor = 18
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 
@@ -145,7 +159,6 @@ def main():
 
         if solution.success and end_to_end_delay_durr_periods_orig(solution.x) <= e2e_delay_threshold and get_total_util_2(budgets, solution.x):
             print (solution.x, "e2e: ", solution.fun, end_to_end_delay_durr_periods_orig(solution.x))
-            schedulable += 1
             if check_negative(solution.x):
                 print ("bad value")
                 continue
@@ -160,5 +173,8 @@ def main():
 
     print ("Unschedulable: {}/{}".format((no_tasksets - schedulable), no_tasksets))
 
+    with open("accepted_sets_scipy.txt", "a") as f:
+        f.write(f"{schedulable} ")
+
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

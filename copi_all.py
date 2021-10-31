@@ -1,5 +1,6 @@
 '''
--- This is for Loss Rate experiment.
+-- This is for the Loss Rate experiment.
+End-to-end delay and utilization bound constraint is always there.
 '''
 import task_generator as task_gen
 
@@ -152,13 +153,14 @@ def main(argv):
     rejected_time_taken = []
     Loss_UB = -1
     e2e_delay_factor = -1
+    no_tasks = -1
 
     # Taking arguments
 
-    usage = 'Usage: python copi_all.py -l <loss_rate> -e <LBG>'
+    usage = 'Usage: python copi_all.py -n <no of tasks> -l <loss_rate> -e <LBG>'
 
     try:
-        opts, args = getopt.getopt(argv, "l:e:")
+        opts, args = getopt.getopt(argv, "n:l:e:")
     except getopt.GetoptError:
         print (usage)
         sys.exit(2)
@@ -168,24 +170,30 @@ def main(argv):
             Loss_UB = float(arg)
             if Loss_UB > 1:
                 print ("loss_rate cannot be more than 1. cannot proceed.")
-                sys.exit(2)
+                sys.exit(1)
         elif opt == '-e':
             e2e_delay_factor = float(arg)
+        elif opt == '-n':
+            no_tasks = int(arg)
+
+    if no_tasks <= 0:
+        print ("number of tasks is not given.")
+        print (usage)
+        sys.exit(1)
 
     if Loss_UB == -1:
         print ("Loss Rate UB is not provided.")
         print (usage)
-        sys.exit(2)
+        sys.exit(1)
 
     if e2e_delay_factor == -1:
         print ("E2E Delay UB in the form of Latency Budget Gap (LBG) is not provided.")
-        print ('Usage: python opt_s2_lr.py -l <loss_rate> -e <e2e delay factor>')
-        sys.exit(2)
+        print (usage)
+        sys.exit(1)
 
     Loss_Rate = int(100 * Loss_UB)
 
     random.seed(50)
-    no_tasks = 5
     no_tasksets = 1000
 
     min_period = 100
@@ -275,7 +283,7 @@ def main(argv):
     print ("third schedulable: {}/{}".format(third_schedl, no_tasksets))
 
     total_sched_able = (first_schedl + second_schedl + third_schedl)
-    with open("result_lr_copi.txt", "a") as f:
+    with open("accepted_lr_copi.txt", "a") as f:
         f.write("{} ".format(total_sched_able))
 
     avg_accept_time = int(1000 * float(sum(accepted_time_taken)) / total_sched_able)
