@@ -176,7 +176,7 @@ def main():
     second_schedl = 0
     third_schedl = 0
 
-    setfile_string = "percent_" + str(total_util) + "_" + str(no_tasks)
+    setfile_string = "dataset_" + str(total_util) + "_" + str(no_tasks)
 
     if not os.path.isfile(setfile_string):
         with open(setfile_string, "wb") as setfile:

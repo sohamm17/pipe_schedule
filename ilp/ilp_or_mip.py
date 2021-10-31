@@ -65,7 +65,7 @@ def main():
 
     schedulable = 0
 
-    setfile_string = "../percent_" + str(total_util)
+    setfile_string = "../dataset_" + str(total_util)
 
     if not os.path.isfile(setfile_string):
         with open(setfile_string, "wb") as setfile:

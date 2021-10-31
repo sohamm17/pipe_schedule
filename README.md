@@ -1,12 +1,11 @@
-##Artifact of "End-to-end Scheduling of Real-time Task Pipelines on Multiprocessors"
+## Artifact of "End-to-end Scheduling of Real-time Task Pipelines on Multiprocessors"
 
 ### Constraint Solvers
 
-1. Our heuristic constraint solver algorithm: `CoPi`
+1. `CoPi`: Our heuristic constraint solver algorithm.
 2. `GEKKO`: The APOPT Solver: https://machinelearning.byu.edu/
 
-Most experiments compare the above two. We also compared two other
-MINLP solvers but only for the first experiment:
+Most experiments compare the above two. We have also experimented with two other MINLP solvers but only for the first experiment:
 
 1. `pyomo`: http://www.pyomo.org/
 2. `scipy`: https://docs.scipy.org/doc/scipy/reference/optimize.html
@@ -40,6 +39,16 @@ The next subsections correspond to the subsections in the Evaluation section of 
 ### Uniprocessor Acceptance Ratio Experiments
 
 #### Only for End-to-end Constraint
+
+1. Run all the experiments for `CoPi`:
+
+```
+./run_exp1_copi.sh
+```
+
+2. Run all the experiments for `GEKKO (APOPT)`:
+3. Run all the experiments for `pyomo (IPOPT)`:
+4. Run all the experiments for `scipy (trust-constr)`:
 
 #### Both End-to-end and Loss-rate Constraints
 
