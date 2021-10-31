@@ -154,7 +154,7 @@ def main(argv):
         sys.exit(2)
 
     if e2e_delay_factor == -1:
-        print ("E2E Delay UB is not provided.")
+        print ("E2E Delay UB in the form of Latency Budget Gap (LBG) is not provided.")
         print (usage)
         sys.exit(2)
 
@@ -177,7 +177,7 @@ def main(argv):
 
     schedulable = 0
 
-    setfile_string = "../dataset_" + str(total_util) + "_" + str(no_tasks)
+    setfile_string = "./dataset_" + str(total_util) + "_" + str(no_tasks)
 
     if not os.path.isfile(setfile_string):
         with open(setfile_string, "wb") as setfile:

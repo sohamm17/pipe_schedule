@@ -1,6 +1,6 @@
 import task_generator as task_gen
 from utility import *
-import os, pickle, sys
+import os, pickle, sys, getopt, random
 import numpy as np
 from pipeline import *
 
@@ -8,15 +8,15 @@ from pyomo.environ import *
 from pyomo.opt import SolverStatus, TerminationCondition
 from pyomo.gdp import *
 
-def e2e_constraint(periods, threshold):
-    print ("periods ", periods)
-    print ("e2e", end_to_end_delay_durr_periods(periods))
-    diff = (threshold - end_to_end_delay_durr_periods(periods))
-    return (threshold - end_to_end_delay_durr_periods(periods))
-    # if diff >= 0:
-    #     return (threshold - end_to_end_delay_durr_periods(periods))
-    # else:
-    #     return -np.Inf
+# def e2e_constraint(periods, threshold):
+#     print ("periods ", periods)
+#     print ("e2e", end_to_end_delay_durr_periods(periods))
+#     diff = (threshold - end_to_end_delay_durr_periods(periods))
+#     return (threshold - end_to_end_delay_durr_periods(periods))
+#     # if diff >= 0:
+#     #     return (threshold - end_to_end_delay_durr_periods(periods))
+#     # else:
+#     #     return -np.Inf
 
 def util_constraint(periods, budgets):
     taskset = []
@@ -192,8 +192,27 @@ def solve_pyomo(budgets, e2e_delay_threshold):
     return results, final_periods
 
 
-def main():
+def main(argv):
     global under_0, under_25, under_50, under_75
+    e2e_delay_factor = -1
+
+    usage = 'Usage: python ilp/ilp_pyomo.py -e <LBG>'
+
+    try:
+        opts, args = getopt.getopt(argv, "e:")
+    except getopt.GetoptError:
+        print (usage)
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt == '-e':
+            e2e_delay_factor = float(arg)
+
+    if e2e_delay_factor == -1:
+        print ("E2E Delay UB in the form of Latency Budget Gap (LBG) is not provided.")
+        print (usage)
+        sys.exit(2)
+
     no_tasks = 10
     no_tasksets = 1000
 
@@ -201,8 +220,6 @@ def main():
     max_period = 1000
 
     total_util = 0.75
-
-    e2e_delay_factor = 18
 
     utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
 
@@ -212,7 +229,7 @@ def main():
 
     schedulable = 0
 
-    setfile_string = "../dataset_" + str(total_util) + "_" + str(no_tasks)
+    setfile_string = "./dataset_" + str(total_util) + "_" + str(no_tasks)
 
     if not os.path.isfile(setfile_string):
         with open(setfile_string, "wb") as setfile:
@@ -264,5 +281,8 @@ def main():
 
     print ("E2E Factor:", e2e_delay_factor)
 
+    with open("accepted_sets_pyomo.txt", "a") as f:
+        f.write(f"{schedulable} ")
+
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1:])

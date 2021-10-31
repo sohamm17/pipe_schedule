@@ -100,10 +100,12 @@ def solve_scipy(budgets, e2e_delay_threshold):
 
     # sol = minimize(rev_util_constraint, periods_init, method='SLSQP', bounds=bounds, constraints=cons, args=(budgets), options={'eps': 60, 'maxiter': 500}, jac='2-point')
 
-    sol = minimize(end_to_end_delay_durr_periods_orig, periods_init, method='trust-constr', bounds = bounds, constraints=cons, options={'disp': True, 'maxiter': 70000})
+    sol = minimize(end_to_end_delay_durr_periods_orig, periods_init, method='trust-constr', bounds=actual_bounds, constraints=cons, options={'disp': True, 'maxiter': 5000}, jac=gradient_respecting_bounds(bounds, end_to_end_delay_durr_periods_orig))
 
     # sol = minimize(e2e_constraint, periods_init, method='COBYLA', bounds=bounds, constraints=cons, args=(e2e_delay_threshold), options={'rhobeg': -60, 'maxiter': 5000})
-    
+
+    # sol = differential_evolution(sample_sums, bounds, maxiter=500)
+
     return sol
 
 def main():
@@ -125,7 +127,7 @@ def main():
 
     schedulable = 0
 
-    setfile_string = "./dataset_" + str(total_util) + "_" + str(no_tasks)
+    setfile_string = "../percent_" + str(total_util)
 
     if not os.path.isfile(setfile_string):
         with open(setfile_string, "wb") as setfile:

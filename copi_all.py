@@ -178,7 +178,7 @@ def main(argv):
         sys.exit(2)
 
     if e2e_delay_factor == -1:
-        print ("E2E Delay UB is not provided.")
+        print ("E2E Delay UB in the form of Latency Budget Gap (LBG) is not provided.")
         print ('Usage: python opt_s2_lr.py -l <loss_rate> -e <e2e delay factor>')
         sys.exit(2)
 

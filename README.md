@@ -28,6 +28,11 @@ MINLP Solvers:
 2. `ilp/ilp_pyomo.py`: `pyomo` constraint optimization solution.
 3. `ilp/ilp_scipy.py`: `scipy` constraint optimization solution.
 
+Datasets:
+Random pipelines are generated using UUnifast algorithm. All the dataset files are `pickle` files.
+1. `dataset_*` files are for uniprocessor and runtime experiments.
+2. `pipelines_*` files are for multiprocessor experiments.
+
 Helper function files:
 1. `utility.py`: Some helper functions for utilization, RMS bound and other calculations.
 2. `pipeline.py`: Most functions related to a pipeline are here. For example, end-to-end delay, loss-rate, etc.
@@ -47,8 +52,17 @@ The next subsections correspond to the subsections in the Evaluation section of 
 ```
 
 2. Run all the experiments for `GEKKO (APOPT)`:
+```
+./run_exp1_gekko.sh
+```
 3. Run all the experiments for `pyomo (IPOPT)`:
+```
+./run_exp1_pyomo.sh
+```
 4. Run all the experiments for `scipy (trust-constr)`:
+```
+./run_exp1_scipy.sh
+```
 
 #### Both End-to-end and Loss-rate Constraints
 
