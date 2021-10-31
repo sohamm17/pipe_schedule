@@ -28,7 +28,8 @@ MINLP Solvers:
 2. `ilp/ilp_pyomo.py`: `pyomo` constraint optimization solution.
 3. `ilp/ilp_scipy.py`: `scipy` constraint optimization solution.
 
-Datasets:
+#### Datasets
+
 Random pipelines are generated using UUnifast algorithm. All the dataset files are `pickle` files.
 1. `dataset_*` files are for uniprocessor and runtime experiments.
 2. `pipelines_*` files are for multiprocessor experiments.
@@ -36,6 +37,16 @@ Random pipelines are generated using UUnifast algorithm. All the dataset files a
 Helper function files:
 1. `utility.py`: Some helper functions for utilization, RMS bound and other calculations.
 2. `pipeline.py`: Most functions related to a pipeline are here. For example, end-to-end delay, loss-rate, etc.
+
+#### Figures
+
+The figures are provided in the `Figures` directory.
+
+All the figures could be generated as PDF files by:
+```
+cd Figures
+make
+```
 
 ## Experiments
 
@@ -68,6 +79,9 @@ The next subsections correspond to the subsections in the Evaluation section of 
 ##### Result
 All the data will be written to `accepted_sets_<solver>.txt` in space separated format for *LBG* = {11, 12, 14, 15, 16, 18}. For example, `accepted_sets_copi.txt`
 
+Paper results are summarized in `Figures/accept.csv`.
+(3rd, 5th, 6th, 7th lines are respectively CoPi, GEKKO, scipy and pyomo.)
+
 #### Both End-to-end and Loss-rate Constraints
 
 1. Generate CoPi data points by the following script:
@@ -88,22 +102,32 @@ All the data will be appended to `accepted_sets_gekko.txt`.
 ```
 All the data will be appended to `accepted_sets_gekko.txt`.
 
+Paper results are summarized in `Figures/accept_models_lr.csv`.
+3rd, 4th, 5th lines are respectively: GEKKO, CoPi, GEKKO (with BAC)
+
 ### Solver Runtime Overhead
 
-1. CoPi's runtime vs pipeline length experiment (Figure 9a):
+1. CoPi's runtime vs pipeline length experiment (Figure 9c):
 ```
 ./time_measure_copi_pipelength.sh
 ```
-The results are available in `scheduled_times_copi.txt` and `failed_times_copi.txt` in space separated format.
+The results will be available in `scheduled_times_copi.txt` and `failed_times_copi.txt` in space separated format.
 
-2. Run `CoPi` experiments for Figure 9b and 9c:
+Paper results are summarized in `Figures/runtime_pipe_length.csv`.
+(2nd line, 3rd line: schedulable and unschedulable).
+
+2. Run `CoPi` experiments for Figure 9a and 9b:
 ```
 ./run_solver_exp2_copi.sh
 ```
-3. Run `GEKKO` experiments for Figure 9b and 9c:
+
+3. Run `GEKKO` experiments for Figure 9a and 9b:
 ```
 ./run_solver_exp2_gekko.sh
 ```
+
+Paper results are summarized in `Figures/lbg_time_accept.csv` and
+`Figures/lbg_time_failed.csv`
 
 ### CoPi Performance Insight
 
@@ -124,7 +148,12 @@ Run the processor based experiments with the following script:
 ./run_multiproc_4cores.sh
 ./run_multiproc_8cores.sh
 ```
+Results will be written to accepted_multiproc_\<number of cores>_\<number of tasks in a pipeline>.
 
+Paper results are summarized in `Figures/accept_multiprocessor_2core.csv`,
+`Figures/accept_multiprocessor_4core.csv`, `Figures/accept_multiprocessor_8core.csv`
+
+Lower level python script:
 ```
 python multi_pipeline.py -p <number of pipelines> -t <number of tasks in each Pipeline> -c <number of processors> -r <number of runs>
 ```
