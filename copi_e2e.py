@@ -250,9 +250,12 @@ def main(argv):
     with open("accepted_sets_copi.txt", "a") as f:
         f.write(f"{total_sched_able} ")
 
-    print ("Average Num Iteration for Accepted: ", float(sum(accepted_num_iterations)) / total_sched_able)
+    avg_accept_time = 0
+    if (total_sched_able > 0):
+        print ("Average Num Iteration for Accepted: ", float(sum(accepted_num_iterations)) / total_sched_able)
 
-    avg_accept_time = int(1000 * float(sum(accepted_time_taken)) / total_sched_able)
+        avg_accept_time = int(1000 * float(sum(accepted_time_taken)) / total_sched_able)
+
     print ("Average Accepted Time Taken: ", avg_accept_time, "ms")
 
     with open("scheduled_times_copi.txt", "a") as f:

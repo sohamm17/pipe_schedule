@@ -286,7 +286,9 @@ def main(argv):
     with open("accepted_lr_copi.txt", "a") as f:
         f.write("{} ".format(total_sched_able))
 
-    avg_accept_time = int(1000 * float(sum(accepted_time_taken)) / total_sched_able)
+    avg_accept_time = 0
+    if (total_sched_able > 0):
+        avg_accept_time = int(1000 * float(sum(accepted_time_taken)) / total_sched_able)
     print ("Average Accepted Time Taken: ", avg_accept_time, "ms")
 
     with open("accepted_time_lr.txt", "a") as f:
