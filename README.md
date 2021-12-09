@@ -77,10 +77,13 @@ The next subsections correspond to the subsections in the Evaluation section of 
 ./run_exp1_scipy.sh
 ```
 ##### Result
-All the data will be written to `accepted_sets_<solver>.txt` in space separated format for *LBG* = {11, 12, 14, 15, 16, 18}. For example, `accepted_sets_copi.txt`
+All the data will be written to `accepted_sets_<solver>.txt` in space separated format for *LBG* = {11, 12, 14, 15, 16, 18}. For example, `accepted_sets_copi.txt` is for `CoPi`.
 
 Paper results are summarized in `Figures/accept.csv`.
 (3rd, 5th, 6th, 7th lines are respectively CoPi, GEKKO, scipy and pyomo.)
+
+*The results may vary a bit depending on the changes in the random dataset, but
+the basic overview of the result should remains same as the result in the paper and in `Figures` folder.*
 
 #### Both End-to-end and Loss-rate Constraints
 
@@ -90,7 +93,9 @@ Paper results are summarized in `Figures/accept.csv`.
 ```
 The `accepted_lr_copi.txt` will have the number of accepted (schedulable) pipelines in space separated format for {0, 25, 50, 75}% loss-rate
 
-2. Generate GEKKO data points by the following script:
+2. Generate GEKKO data points by the following script (result will be
+     appended to `accepted_sets_gekko.txt`, so if you can remove the
+     file if you do not want to see previous results):
 ```
 ./run_gekko_lr.sh
 ```
@@ -103,7 +108,10 @@ All the data will be appended to `accepted_sets_gekko.txt`.
 All the data will be appended to `accepted_sets_gekko.txt`.
 
 Paper results are summarized in `Figures/accept_models_lr.csv`.
-3rd, 4th, 5th lines are respectively: GEKKO, CoPi, GEKKO (with BAC)
+3rd, 4th, 5th lines are respectively: CoPi, GEKKO, GEKKO (with BAC).
+
+*The exact data of this experiment and the figure in the submitted version of
+the paper may differ depending on the changes in the dataset. However, the main outcome of both the results remains same.*
 
 ### Solver Runtime Overhead
 
@@ -112,9 +120,15 @@ Paper results are summarized in `Figures/accept_models_lr.csv`.
 ./time_measure_copi_pipelength.sh
 ```
 The results will be available in `scheduled_times_copi.txt` and `failed_times_copi.txt` in space separated format.
+You may want to delete these files manually before running the test as
+results from the earlier experiments may already be there.
 
 Paper results are summarized in `Figures/runtime_pipe_length.csv`.
-(2nd line, 3rd line: schedulable and unschedulable).
+(1st, 2nd line, 3rd line: length, times for schedulable and times for
+unschedulable).
+
+*Exact results may vary depending on a machine's performance, but the
+main outcome of the results should remain the same.*
 
 2. Run `CoPi` experiments for Figure 9a and 9b:
 ```
@@ -126,8 +140,14 @@ Paper results are summarized in `Figures/runtime_pipe_length.csv`.
 ./run_solver_exp2_gekko.sh
 ```
 
-Paper results are summarized in `Figures/lbg_time_accept.csv` and
-`Figures/lbg_time_failed.csv`
+The results will be available in `scheduled_times_copi.txt` and `failed_times_copi.txt` for `CoPi`, and `accepted_time_gekko.txt` and `failed_time_gekko.txt` for `GEKKO`, in space separated format.
+You may want to delete these files manually before running the test as
+results from the earlier experiments may already be there.
+
+Paper results are summarized in `Figures/lbg_time.csv` and
+`Figures/lbg_time.csv`. In each file:
+(1st, 2nd line, 3rd line: LBG, times for CoPi and times for
+GEKKO)
 
 ### CoPi Performance Insight
 
@@ -136,6 +156,16 @@ CoPi's AR vs.  pipeline length and NLBG
 ```
 ./run_perform_insight.sh
 ```
+
+The results will be written to `accepted_sets_copi.txt` file in space
+separated format. Paper results will be available in `Figures/
+increasing_task.csv`. 1st line is NLBG, 2nd line is the number of total
+tasks, 3rd, 4th, 5th, 6th, 7th lines are for 3, 5, 10, 15 and 20 tasks.
+In `accepted_sets_copi.txt`, every five entries should correspond to 1 line
+in `Figures/increasing_task.csv`. You may want to delete the `accepted_sets_copi.txt` file as it may contain results from previous
+experiments.
+
+*Exact result may vary depending on the change of datasets.*
 
 ### Multiprocessor Experiments
 
@@ -148,7 +178,7 @@ Run the processor based experiments with the following script:
 ./run_multiproc_4cores.sh
 ./run_multiproc_8cores.sh
 ```
-Results will be written to accepted_multiproc_\<number of cores>_\<number of tasks in a pipeline>.
+Results will be written to `accepted_multiproc_\<number of cores>_\<number of tasks in a pipeline>`.
 
 Paper results are summarized in `Figures/accept_multiprocessor_2core.csv`,
 `Figures/accept_multiprocessor_4core.csv`, `Figures/accept_multiprocessor_8core.csv`

@@ -122,9 +122,9 @@ def optimize_alpha(single_set, budgets, equal_period, e2e_delay, starting_alpha=
                     # sys.exit(1)
                     if(cur_loss_rate <= Loss_UB):
                         schedulable = True
-                        prompt = 1
-                        if (cur_loss_rate == 0):
-                            input(prompt)
+                        # prompt = 1
+                        # if (cur_loss_rate == 0):
+                        #     input(prompt)
                         return 3
                     # else:
                     #     sys.exit(1)

@@ -191,7 +191,7 @@ def main(argv):
         print ("Sum Budgets: {}, E2E_UB: {}".format(sum(budgets), e2e_delay_ub))
 
         alpha_cal = float(sum(budgets)) / float(e2e_delay_ub) *  (1 / (pow(2, 1.0 / no_tasks) - 1)) * ((no_tasks + 1) / no_tasks)
-        print ("alpha_cal {}".format(alpha_cal))
+        #print ("alpha_cal {}".format(alpha_cal))
 
         start = timer()
         equal_period = int(e2e_delay_ub / (no_tasks + 1))
@@ -221,7 +221,7 @@ def main(argv):
         if opt_alpha > 1:
             accepted_time_taken.append((end - start))
             accepted_num_iterations.append(num_iterations)
-            print ("Alpha cal: :", alpha_cal)
+            #print ("Alpha cal: :", alpha_cal)
         elif opt_alpha < 1:
             rejected_time_taken.append((end - start))
 
