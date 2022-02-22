@@ -1,8 +1,8 @@
 '''
--- This is for the Loss Rate experiment.
-End-to-end delay and utilization bound constraint is always there.
+These experiments are with dataset generated from the parameters provided in
+WATERS 2015 Bosch paper.
+Kramer, Simon, Dirk Ziegenbein, and Arne Hamann. "Real World Automotive Benchmarks For Free," 6, 2015.
 '''
-import task_generator as task_gen
 from copi_lib import *
 
 import numpy as np
@@ -14,8 +14,49 @@ from pipeline import *
 import random
 from timeit import default_timer as timer
 
+# The algorithm is to get a random number for ACET
+# from a minimum and maximum ACET value (Table IV)
+# Then generate a random factor from a minimum
+# and max random factor (Table V)
+# Then multiply random ACET with random factor
+
+# Table III, omitting angle-sync tasks
+task_distr = [3, 2, 2, 25, 25, 3, 20, 1, 4]
+# ns from Table IV
+acet_distr = [5000, 4200, 11040, 10090, 8740, 17560, 10530, 2560, 430]
+# from Table V (Column 3)
+LOW_WCET_FACTOR = [1.30, 1.54, 1.13, 1.06, 1.06, 1.13, 1.02, 1.03, 1.84]
+# from Table V (Column 4)
+HIGH_WCET_FACTOR = [29.11, 19.04, 18.44, 30.03, 15.61, 7.76, 8.88, 4.90, 4.75]
+
+# def gen_waters_wcet():
+#     rand_acet = random.randint(LOW_ACET, HIGH_ACET)
+#     rand_wcet_factor = random.randint(LOW_WCET_FACTOR, HIGH_WCET_FACTOR)
+#     return (rand_acet * rand_wcet_factor)
+
+# in total, generate nsets number of tasksets of n WATERS WCETs
+def gen_waters_wcets(nsets, n):
+    global task_distr, acet_distr, LOW_WCET_FACTOR, HIGH_WCET_FACTOR
+    tasksets = []
+    indx = list(range(len(task_distr)))
+    for i in range(nsets):
+        cur_choice = random.choices(indx, weights = task_distr, k = n)
+        cur_taskset = []
+        for j in cur_choice:
+            acet = acet_distr[j]
+            low_wcet = LOW_WCET_FACTOR[j]
+            high_wcet = HIGH_WCET_FACTOR[j]
+            cur_wcet = int(acet * random.uniform(low_wcet, high_wcet))
+            # append fake periods because other functions
+            # expect a (budget, period) tuple
+            cur_taskset.append((cur_wcet, 0))
+        tasksets.append(cur_taskset)
+    # print (tasksets)
+    return tasksets
+
+
 def main(argv):
-    Loss_Rate = 50 # In Percentage
+    Loss_Rate = 25 # In Percentage
     loss_ub = float(Loss_Rate) / 100
     accepted_num_iterations = []
     accepted_time_taken = []
@@ -23,13 +64,14 @@ def main(argv):
     loss_ub = -1
     e2e_delay_factor = -1
     no_tasks = -1
+    nlbg = 1.5
 
     # Taking arguments
 
-    usage = 'Usage: python copi_all.py -n <no of tasks> -l <loss_rate> -e <LBG>'
+    usage = 'Usage: python waters.py -n <no of tasks> -l <loss_rate> -x <NLBG, default is 1.5>'
 
     try:
-        opts, args = getopt.getopt(argv, "n:l:e:")
+        opts, args = getopt.getopt(argv, "n:l:x:")
     except getopt.GetoptError:
         print (usage)
         sys.exit(2)
@@ -40,8 +82,8 @@ def main(argv):
             if loss_ub > 1:
                 print ("loss_rate cannot be more than 1. cannot proceed.")
                 sys.exit(1)
-        elif opt == '-e':
-            e2e_delay_factor = float(arg)
+        elif opt == '-x':
+            nlbg = float(arg)
         elif opt == '-n':
             no_tasks = int(arg)
 
@@ -55,32 +97,25 @@ def main(argv):
         print (usage)
         sys.exit(1)
 
-    if e2e_delay_factor == -1:
-        print ("E2E Delay UB in the form of Latency Budget Gap (LBG) is not provided.")
+    if nlbg < 1:
+        print ("NLBG should be more than 1.")
         print (usage)
         sys.exit(1)
 
     Loss_Rate = int(100 * loss_ub)
 
+    e2e_delay_factor = float(no_tasks) * nlbg #LBG
+
     random.seed(50)
     no_tasksets = 1000
 
-    min_period = 100
-    max_period = 1000
-
-    total_util = 0.75 # Just to generate a distribution by UUnifast
-
-    utils_sets = task_gen.gen_uunifastdiscard(no_tasksets, total_util, no_tasks)
-
-    period_sets = task_gen.gen_periods_uniform(no_tasks, no_tasksets, min_period, max_period, True)
-
-    current_sets = task_gen.gen_tasksets(utils_sets, period_sets, True)
+    current_sets = gen_waters_wcets(no_tasksets, no_tasks)
 
     first_schedl = 0
     second_schedl = 0
     third_schedl = 0
 
-    setfile_string = "dataset_" + str(total_util) + "_" + str(no_tasks)
+    setfile_string = "watersdata_" + str(no_tasks)
 
     if not os.path.isfile(setfile_string):
         with open(setfile_string, "wb") as setfile:
@@ -90,8 +125,9 @@ def main(argv):
             current_sets = pickle.load(setfile)
 
     done_tasksets = 0
+    e2e_delay_sum = 0 # to keep track of average e2e delay for schedulables
     for single_set in current_sets:
-        print ("single_set:", single_set)
+        # print ("single_set: ", single_set)
         budgets = [x[0] for x in single_set]
         # budgets = [random.randint(5, 250) for x in single_set]
         print ("Initial Budgets: ", budgets)
@@ -113,8 +149,8 @@ def main(argv):
         if utilization_bound_test(taskset) and end_to_end_delay_durr(taskset) <= e2e_delay_ub and loss_rate_ub(taskset, budgets) <= loss_ub:
             # print (get_total_util(taskset))
             first_schedl += 1
-            done_tasksets += 1
             opt_alpha = 1
+            e2e_delay_sum += end_to_end_delay_durr(taskset)
         else:
             # print ("Second Stage", taskset, get_total_util(taskset))
 
@@ -125,8 +161,10 @@ def main(argv):
 
             if opt_alpha == 2:
                 second_schedl += 1
+                e2e_delay_sum += end_to_end_delay_durr(taskset)
             elif opt_alpha == 3:
                 third_schedl += 1
+                e2e_delay_sum += end_to_end_delay_durr(taskset)
 
         end = timer()
 
@@ -153,15 +191,22 @@ def main(argv):
     print ("third schedulable: {}/{}".format(third_schedl, no_tasksets))
 
     total_sched_able = (first_schedl + second_schedl + third_schedl)
-    with open("accepted_lr_copi.txt", "a") as f:
+    avge2e = 0
+    if total_sched_able:
+        avge2e = int(float(e2e_delay_sum) / total_sched_able)
+
+    with open("accepted_waters_copi.txt", "a") as f:
         f.write("{} ".format(total_sched_able))
+
+    with open("accepted_waters_avge2e.txt", "a") as f:
+        f.write("{} ".format(avge2e))
 
     avg_accept_time = 0
     if (total_sched_able > 0):
         avg_accept_time = int(1000 * float(sum(accepted_time_taken)) / total_sched_able)
     print ("Average Accepted Time Taken: ", avg_accept_time, "ms")
 
-    with open("accepted_time_lr.txt", "a") as f:
+    with open("accepted_time_waters.txt", "a") as f:
         f.write("{} ".format(avg_accept_time))
 
     if total_sched_able < no_tasksets:
@@ -169,7 +214,7 @@ def main(argv):
 
         print ("Average Rejected Time Taken: ", avg_failed_time, "ms")
 
-        with open("failed_time_lr.txt", "a") as f:
+        with open("failed_time_waters.txt", "a") as f:
             f.write("{} ".format(avg_failed_time))
 
     print ("Unschedulable: {}/{}".format((no_tasksets - total_sched_able), no_tasksets))

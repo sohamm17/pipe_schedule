@@ -85,7 +85,7 @@ Paper results are summarized in `Figures/accept.csv`.
 *The results may vary a bit depending on the changes in the random dataset, but
 the basic overview of the result should remains same as the result in the paper and in `Figures` folder.*
 
-#### Both End-to-end and Loss-rate Constraints
+#### Both End-to-end Delay and Loss-rate Constraints
 
 1. Generate CoPi data points by the following script:
 ```

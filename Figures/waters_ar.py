@@ -22,7 +22,7 @@ def main():
     colors = ['#ff8080', '#ff9900', "#00cccc", 'r', 'blue', 'm', 'g']
     patterns = ['o', 'x', '\\', '+', '.', 'O', '-']
 
-    with open("increasing_task.csv") as f:
+    with open("waters_ar.csv") as f:
         strect_factors = [float(x) for x in f.readline().strip().rstrip('\n').split(" ")]
         total_tasks = [int(x) for x in f.readline().strip().rstrip('\n').split(" ")]
         for i in range(len(data)):
@@ -38,7 +38,7 @@ def main():
     plt.ylim(0, 105)
     plt.xlabel("Normalized LBG", fontsize=18)
     plt.ylabel("Acceptance Ratio [AR] (%)", fontsize=18)
-    labels = ["3 tasks", "5 tasks", "10 tasks", "15 tasks", "20 tasks"]
+    labels = ["3 tasks", "5 tasks", "8 tasks", "10 tasks", "12 tasks", "15 tasks"]
     xticks = strect_factors
     plt.xticks(xticks)
 

@@ -149,8 +149,9 @@ def main(argv):
 
     total_util = 0.75
 
-    e2e_delay_factor = no_tasks * nlbg #LBG
+    e2e_delay_factor = float(no_tasks) * nlbg #LBG
 
+    # just used for WCET generation purposes
     min_period = 100
     max_period = 1000
 

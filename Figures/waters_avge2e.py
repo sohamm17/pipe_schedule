@@ -22,14 +22,14 @@ def main():
     colors = ['#ff8080', '#ff9900', "#00cccc", 'r', 'blue', 'm', 'g']
     patterns = ['o', 'x', '\\', '+', '.', 'O', '-']
 
-    with open("increasing_task.csv") as f:
+    with open("waters_avge2e.csv") as f:
         strect_factors = [float(x) for x in f.readline().strip().rstrip('\n').split(" ")]
         total_tasks = [int(x) for x in f.readline().strip().rstrip('\n').split(" ")]
         for i in range(len(data)):
-            data[i] = [float(x) for x in f.readline().strip().rstrip('\n').split(" ")]
+            data[i] = [int(float(x)/1000000) for x in f.readline().strip().rstrip('\n').split(" ")]
 
-    for i in range(len(data)):
-        data[i] = [100 * float(data[i][j]) / total_tasks[j] for j in range(len(total_tasks))]
+    # for i in range(len(data)):
+    #     data[i] = [100 * float(data[i][j]) / total_tasks[j] for j in range(len(total_tasks))]
 
     #print (data)
     fig = plt.figure(num=None, figsize=(6, 4.5), dpi=80, edgecolor='k')
@@ -37,8 +37,8 @@ def main():
     ax = fig.add_subplot(111)
     plt.ylim(0, 105)
     plt.xlabel("Normalized LBG", fontsize=18)
-    plt.ylabel("Acceptance Ratio [AR] (%)", fontsize=18)
-    labels = ["3 tasks", "5 tasks", "10 tasks", "15 tasks", "20 tasks"]
+    plt.ylabel("Avg E2E Delay (ms)", fontsize=18)
+    labels = ["3 tasks", "5 tasks", "8 tasks", "10 tasks", "12 tasks", "15 tasks"]
     xticks = strect_factors
     plt.xticks(xticks)
 
@@ -57,7 +57,7 @@ def main():
     plt.grid()
     plt.tight_layout(pad=0.15)
     # plt.show()
-    plt.savefig("increasing_task.pdf")
+    plt.savefig("waters_avge2e.pdf")
 
 
 if __name__ == "__main__":
