@@ -34,7 +34,8 @@ HIGH_WCET_FACTOR = [29.11, 19.04, 18.44, 30.03, 15.61, 7.76, 8.88, 4.90, 4.75]
 #     rand_wcet_factor = random.randint(LOW_WCET_FACTOR, HIGH_WCET_FACTOR)
 #     return (rand_acet * rand_wcet_factor)
 
-# in total, generate nsets number of tasksets of n WATERS WCETs
+# in total, generate nsets number of tasksets; each taskset has n numbers of
+# WCETs taken from WATERS 2015 benchmark
 def gen_waters_wcets(nsets, n):
     global task_distr, acet_distr, LOW_WCET_FACTOR, HIGH_WCET_FACTOR
     tasksets = []

@@ -16,6 +16,8 @@ all: $(PY_FILES)
 	python3.5 runtime_pipe_length.py
 	python3 lbg_time.py
 	python3 lbg_time_failed.py
+	python3 waters_ar.py
+	python3 waters_avge2e.py
 	#python3.5 accept_loss_rate.py
 
 clean:

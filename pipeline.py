@@ -20,6 +20,13 @@ model = None
 #     return sum([x[1] for x in pipeline])
 
 """
+Davare et al.[2019] - End-to-end delay upper bound:
+response-time replaced by period
+"""
+def end_to_end_delay_davare(pipeline):
+    return 2 * sum([x[1] for x in pipeline])
+
+"""
 Durr et al.[2019] - End-to-end delay upper bound:
 response-time replaced by period
 """

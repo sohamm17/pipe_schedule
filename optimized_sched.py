@@ -1,3 +1,6 @@
+"""
+This file is used by the multiprocessor multi-pipeline algorithm.
+"""
 import task_generator as task_gen
 
 import numpy as np
@@ -70,7 +73,11 @@ def optimize_alpha_live(budgets, e2e_delay, loss_rate_bound, try_util_bound, sta
                         taskset = make_taskset_harmonic(taskset)
                         i += 1 #- skip for successful ones
                         at_least_one_pipe_changed = True
-                        if end_to_end_delay_durr(taskset) <= e2e_delay and loss_rate_ub(taskset, budgets) <= loss_rate_bound:
+                        # previously, we used the duur equation, but
+                        # we have to use davare equation to avoid
+                        # task priority dependency
+                        if end_to_end_delay_davare(taskset) <= e2e_delay and loss_rate_ub(taskset, budgets) <= loss_rate_bound:
+                        # if end_to_end_delay_durr(taskset) <= e2e_delay and loss_rate_ub(taskset, budgets) <= loss_rate_bound:
                             schedulable = True
                             print ("Second Stage Sched, E2E: ", end_to_end_delay_durr(taskset), loss_rate_ub(taskset, budgets), get_total_util(taskset))
                             print (taskset)
