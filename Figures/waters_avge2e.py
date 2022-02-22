@@ -33,9 +33,9 @@ def main():
 
     #print (data)
     fig = plt.figure(num=None, figsize=(6, 4.5), dpi=80, edgecolor='k')
-    plt.xlim(1.2, 1.82)
+    plt.xlim(1.38, 1.67)
     ax = fig.add_subplot(111)
-    plt.ylim(0, 105)
+    plt.ylim(0, 26)
     plt.xlabel("Normalized LBG", fontsize=18)
     plt.ylabel("Avg E2E Delay (ms)", fontsize=18)
     labels = ["3 tasks", "5 tasks", "8 tasks", "10 tasks", "12 tasks", "15 tasks"]
@@ -53,7 +53,7 @@ def main():
     plt.tick_params(axis='both', which='major', labelsize=14)
     plt.tick_params(axis='both', which='minor', labelsize=14)
 
-    ax.legend(loc='upper left', bbox_to_anchor=(0.0, 1.02), prop={'size': 18})
+    ax.legend(loc='upper left', bbox_to_anchor=(0.0, 1.02), prop={'size': 18}, ncol=2, framealpha=0.2)
     plt.grid()
     plt.tight_layout(pad=0.15)
     # plt.show()
