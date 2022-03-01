@@ -176,6 +176,7 @@ def main(argv):
             current_sets = pickle.load(setfile)
 
     done_tasksets = 0
+    e2e_delay_sum = 0 # to keep track of average e2e delay for schedulables
     for single_set in current_sets:
         opt_alpha = 0
         num_iterations = 0
@@ -208,14 +209,17 @@ def main(argv):
             # print ("First: ", taskset, end_to_end_delay_durr(taskset), get_total_util(taskset))
             first_schedl += 1
             opt_alpha = 1
+            e2e_delay_sum += end_to_end_delay_durr(taskset)
         #Step 2
         else:
             opt_alpha = optimize_alpha(single_set, budgets, equal_period, e2e_delay_ub, starting_alpha = alpha_cal, ending_alpha = 2)
 
             if opt_alpha == 2:
                 second_schedl += 1
+                e2e_delay_sum += end_to_end_delay_durr(taskset)
             elif opt_alpha == 3:
                 third_schedl += 1
+                e2e_delay_sum += end_to_end_delay_durr(taskset)
 
         end = timer()
 
@@ -238,6 +242,9 @@ def main(argv):
         # if done_tasksets >= 200:
         #     break
 
+    avge2e = 0
+    if total_sched_able:
+        avge2e = int(float(e2e_delay_sum) / total_sched_able)
 
     print ("first schedulable: {}/{}".format(first_schedl, no_tasksets))
 
@@ -250,6 +257,9 @@ def main(argv):
     total_sched_able = (first_schedl + second_schedl + third_schedl)
     with open("accepted_sets_copi.txt", "a") as f:
         f.write(f"{total_sched_able} ")
+
+    with open("accepted_copi_e2e.txt", "a") as f:
+        f.write("{} ".format(avge2e))
 
     avg_accept_time = 0
     if (total_sched_able > 0):

@@ -37,7 +37,7 @@ def end_to_end_delay_durr(pipeline):
         # If next task is of lower priority (higher or equal period), then P = 0
         I = (0 if pipeline[i + 1][1] >= pipeline[i][1] else 1)
         e2e_ub += max(pipeline[i][1], pipeline[i + 1][1] + pipeline[i][1] * I)
-        # print (i, e2e_ub)
+        print (i, e2e_ub)
     # add the period of first and last tasks
     return (e2e_ub + pipeline[0][1] + pipeline[N - 1][1])
 
