@@ -115,17 +115,17 @@ the paper may differ depending on the changes in the dataset. However, the main 
 
 ### Solver Runtime Overhead
 
-1. CoPi's runtime vs pipeline length experiment (Figure 9c):
+1. Runtime vs pipeline length experiment (Figure 10c):
 ```
 ./time_measure_copi_pipelength.sh
+./time_measure_gekko_pipelength.sh
 ```
-The results will be available in `scheduled_times_copi.txt` and `failed_times_copi.txt` in space separated format.
+The results will be available in `scheduled_times_copi.txt`, `failed_times_copi.txt`, `accepted_time_gekko.txt` and `failed_time_gekko.txt` in space separated format.
 You may want to delete these files manually before running the test as
 results from the earlier experiments may already be there.
 
 Paper results are summarized in `Figures/runtime_pipe_length.csv`.
-(1st, 2nd line, 3rd line: length, times for schedulable and times for
-unschedulable).
+(1st, 2nd, 3rd, 4th, 5th line: pipeline length, CoPi times for schedulable, CoPi times for unschedulable, GEKKO times for schedulable and CoPi times unschedulable).
 
 *Exact results may vary depending on a machine's performance, but the
 main outcome of the results should remain the same.*

@@ -147,7 +147,7 @@ def main(argv):
 
     no_tasksets = 1000
 
-    total_util = 0.75
+    total_util = 0.75 # any random utilization
 
     e2e_delay_factor = float(no_tasks) * nlbg #LBG
 
@@ -242,10 +242,6 @@ def main(argv):
         # if done_tasksets >= 200:
         #     break
 
-    avge2e = 0
-    if total_sched_able:
-        avge2e = int(float(e2e_delay_sum) / total_sched_able)
-
     print ("first schedulable: {}/{}".format(first_schedl, no_tasksets))
 
     print ("second schedulable: {}/{}".format(second_schedl, no_tasksets))
@@ -258,6 +254,10 @@ def main(argv):
     with open("accepted_sets_copi.txt", "a") as f:
         f.write(f"{total_sched_able} ")
 
+    avge2e = 0
+    if total_sched_able:
+        avge2e = int(float(e2e_delay_sum) / total_sched_able)
+        
     with open("accepted_copi_e2e.txt", "a") as f:
         f.write("{} ".format(avge2e))
 

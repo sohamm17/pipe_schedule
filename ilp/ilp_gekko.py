@@ -125,17 +125,24 @@ def main(argv):
     e2e_delay_factor = -1
     with_loss = False
     budget_adj = False
+    no_tasks = 10
 
-    usage = 'Usage: python ilp/ilp_gekko.py -w <with loss-rate constraint or not 0/1> -l <loss_rate> -e <LBG> -b <budget adjustment constraint to be added 0/1>\n By default runs without loss-rate constraint'
+    usage = 'Usage: python ilp/ilp_gekko.py -n <no of tasks, optional; 10 by default> -w <with loss-rate constraint or not; 0/1> -l <loss_rate> -e <LBG> -b <budget adjustment constraint to be added 0/1>\n By default runs without loss-rate constraint'
 
     try:
-        opts, args = getopt.getopt(argv, "w:l:e:b:")
+        opts, args = getopt.getopt(argv, "n:w:l:e:b:")
     except getopt.GetoptError:
         print (usage)
         sys.exit(2)
 
     for opt, arg in opts:
-        if opt == '-l':
+        if opt == '-n':
+            no_tasks = int(arg)
+            if no_tasks <= 0:
+                print ("number of tasks cannot be <= 0.")
+                print (usage)
+                sys.exit(2)
+        elif opt == '-l':
             Loss_UB = float(arg)
             if Loss_UB > 1:
                 print ("loss_rate cannot be more than 1. cannot proceed.")
@@ -161,7 +168,6 @@ def main(argv):
     accepted_time_taken = []
     rejected_time_taken = []
 
-    no_tasks = 10
     no_tasksets = 1000
 
     min_period = 100

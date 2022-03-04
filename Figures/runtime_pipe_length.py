@@ -16,7 +16,7 @@ def main():
 
     markers = ["s", "D", "o", "*", "v", "^"]
     linestyles = ['-', '--', ':', '-', '--', '--']
-    colors = ['red', "blue", '#ff9900', 'r', 'k', 'm', 'g']
+    colors = ['red', "blue", '#ff9900', 'm', 'k', 'r', 'g']
     patterns = ['o', 'x', '\\', '+', '.', 'O', '-']
     hatches = ['-', '|', '/', '\\', '+', 'x', 'o', 'O', '.', '*']
 
@@ -28,16 +28,20 @@ def main():
     pipelengths = []
     accepted = []
     failed = []
+    accepted_gekko = []
+    failed_gekko = []
     with open("runtime_pipe_length.csv") as f:
         pipelengths = [float(x) for x in f.readline().strip().rstrip('\n').split(" ")]
         accepted = [float(x) for x in f.readline().strip().rstrip('\n').split(" ")]
         failed = [float(x) for x in f.readline().strip().rstrip('\n').split(" ")]
+        accepted_gekko = [float(x) for x in f.readline().strip().rstrip('\n').split(" ")]
+        failed_gekko = [float(x) for x in f.readline().strip().rstrip('\n').split(" ")]
 
     fig = plt.figure(num=None, figsize=(6, 4.5), dpi=80, edgecolor='k')
     plt.xlim(pipelengths[0] - 0.25, pipelengths[len(pipelengths) - 1] + 0.5)
 
     ax = fig.add_subplot(111)
-    plt.ylim(0, 275)
+    plt.ylim(0, 655)
 
     plt.xlabel("Pipeline Length", fontsize=18)
     plt.ylabel("Runtime (ms)", fontsize=18)
@@ -45,16 +49,22 @@ def main():
 
     i = 0
     # print (failed, get_smooth_x_y(pipelengths, failed))
-    ax.plot(pipelengths, accepted, color=colors[i], linestyle=linestyles[i], label="Schedulable", linewidth=3.6, marker=markers[i], markersize=14)
+    ax.plot(pipelengths, accepted, color=colors[i], linestyle=linestyles[i], label="Schedulable (CoPi)", linewidth=3.6, marker=markers[i], markersize=10)
 
     i += 1
-    ax.plot(pipelengths, failed, color=colors[i], label="Unschedulable", linewidth=3.6, marker=markers[i], markersize=14)
+    ax.plot(pipelengths, failed, color=colors[i], linestyle=linestyles[i], label="Unschedulable (CoPi)", linewidth=3.6, marker=markers[i], markersize=10)
+
+    i += 1
+    ax.plot(pipelengths, accepted_gekko, color=colors[i], linestyle=linestyles[i], label="Schedulable (GEKKO)", linewidth=3.6, marker=markers[i], markersize=10)
+
+    i += 1
+    ax.plot(pipelengths, failed_gekko, color=colors[i], linestyle=linestyles[i], label="Unschedulable (GEKKO)", linewidth=3.6, marker=markers[i], markersize=10)
 
     plt.tick_params(axis='both', which='major', labelsize=14)
     plt.tick_params(axis='both', which='minor', labelsize=14)
 
-    legend = ax.legend(loc='lower left', bbox_to_anchor=(0.04, 0.6), prop={'size': 18}, handlelength=2.2)
-    # legend.get_frame().set_alpha(0.5)
+    legend = ax.legend(loc='lower left', bbox_to_anchor=(-0.01, 0.6), prop={'size': 16}, handlelength=2.2)
+    legend.get_frame().set_alpha(0.5)
     plt.grid()
     plt.tight_layout(pad=0.11)
     plt.savefig("runtime_pipe_length.pdf")
