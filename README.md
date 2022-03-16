@@ -201,3 +201,21 @@ The result is written to `multi_util_result.txt`.
 ```
 
 The result is written to `migrations_result.txt`.
+
+### WATERS 2015 Workshop Paper Experiments:
+
+For the experimental results with the dataset provided in the
+WATERS 2015 workshop paper by Bosch (*Kramer, Simon, Dirk Ziegenbein, and Arne Hamann. "Real world automotive benchmarks for free." In 6th WATERS Workshop. 2015.*), run the following script:
+
+```
+./run_waters.sh
+```
+
+The results of the CoPi runtimes will be in
+`accepted_waters_copi.txt` file.
+The results of the derived E2E delay for schedulable pipelines will
+be populated in `accepted_waters_avge2e.txt` file. Match these
+numbers with the files provided in `Figures/waters_ar.csv` and
+`Figures/waters_avge2e.csv`. The exact result may vary a bit for
+the runtimes experiment depending on the machine where the code is
+being run. However, the overall trend should still match.
