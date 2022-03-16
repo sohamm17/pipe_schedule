@@ -6,7 +6,7 @@ from utility import *
 from pipeline import *
 
 '''
-This function solves
+This function solves for both the constraints with CoPi
 '''
 def optimize_alpha_all(single_set, budgets, equal_period, e2e_delay, loss_ub, starting_alpha=1.7):
     alpha = starting_alpha

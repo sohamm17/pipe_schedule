@@ -21,7 +21,8 @@ The MINLP solver implementations are in `ilp/`.
 CoPi files are:
 1. `copi_e2e.py`: For only E2E Delay Constraint implementation.
 2. `copi_all.py`: For all the constraints.
-3. `multi_pipeline.py`: For the multiprocessor experiments with CoPi.
+3. `copi_lib.py`: Contains the CoPi algorithm that solves both constraints.
+4. `multi_pipeline.py`: For the multiprocessor experiments with CoPi.
 
 MINLP Solvers:
 1. `ilp/ilp_gekko.py`: `GEKKO` constraint optimization solution.
@@ -33,6 +34,7 @@ MINLP Solvers:
 Random pipelines are generated using UUnifast algorithm. All the dataset files are `pickle` files.
 1. `dataset_*` files are for uniprocessor and runtime experiments.
 2. `pipelines_*` files are for multiprocessor experiments.
+3. `watersdata_*` files are for WATERS 2015 Workshop paper dataset.
 
 Helper function files:
 1. `utility.py`: Some helper functions for utilization, RMS bound and other calculations.
