@@ -4,6 +4,7 @@ set -o xtrace
 set -e
 
 source ~/.bashrc
+rm -f accepted_sets_copi.txt
 python3 copi_e2e.py -n 3 -x 1.1 >/dev/null
 python3 copi_e2e.py -n 3 -x 1.2 >/dev/null
 python3 copi_e2e.py -n 3 -x 1.3 >/dev/null

@@ -4,6 +4,7 @@ set -o xtrace
 set -e
 
 source ~/.bashrc
+rm -f accepted_waters_copi.txt accepted_waters_avge2e.txt
 python3.6 waters.py -n 3 -x 1.4 -l 0.99 >/dev/null
 python3.6 waters.py -n 3 -x 1.45 -l 0.99 >/dev/null
 python3.6 waters.py -n 3 -x 1.5 -l 0.99 >/dev/null

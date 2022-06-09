@@ -4,6 +4,7 @@ set -o xtrace
 set -e
 
 source ~/.bashrc
+rm -f accepted_sets_gekko.txt
 python3 ilp/ilp_gekko.py -l 0.0 -e 15 -w 1 >/dev/null
 python3 ilp/ilp_gekko.py -l 0.25 -e 15 -w 1 >/dev/null
 python3 ilp/ilp_gekko.py -l 0.5 -e 15 -w 1 >/dev/null

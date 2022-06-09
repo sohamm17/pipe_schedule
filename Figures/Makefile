@@ -1,9 +1,6 @@
-PY_FILES = accept_models.py accept_multiprocessor_scale.py #accept_loss_rate.py
-PDF_FILES = accept_models.pdf #accept_loss_rate.pdf
-
 .PHONY: all clean
 
-all: $(PY_FILES)
+all:
 	python3.5 accept_models.py
 	python3.5 accept_models_lr.py
 	python3.5 accept_multiprocessor_2core.py

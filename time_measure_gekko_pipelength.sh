@@ -4,6 +4,7 @@ set -o xtrace
 set -e
 
 source ~/.bashrc
+rm -f accepted_time_gekko.txt failed_time_gekko.txt
 python3 ilp/ilp_gekko.py -n 3 -e 4.5 >/dev/null
 python3 ilp/ilp_gekko.py -n 5 -e 7.5 >/dev/null
 python3 ilp/ilp_gekko.py -n 7 -e 10.5 >/dev/null

@@ -257,7 +257,7 @@ def main(argv):
     avge2e = 0
     if total_sched_able:
         avge2e = int(float(e2e_delay_sum) / total_sched_able)
-        
+
     with open("accepted_copi_e2e.txt", "a") as f:
         f.write("{} ".format(avge2e))
 

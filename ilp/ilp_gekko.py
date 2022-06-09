@@ -34,7 +34,7 @@ With_Loss: Boolean, whether loss-rate constraint to be applied
 Budget_Adj: Boolean, whether to apply the budget adjustment constraint
 Loss_UB: If loss-rate is applied, what is the upper bound
 """
-def solve_gekko(budgets, e2e_delay_threshold, With_Loss = False, Budget_Adj= False, Loss_UB = 1):
+def solve_gekko(budgets, e2e_delay_threshold, With_Loss = False, Budget_Adj = False, Loss_UB = 1):
     global glob_budgets, under_0, under_25, under_50, under_75
     no_tasks = len(budgets)
 
