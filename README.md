@@ -1,18 +1,31 @@
 # Artifacts of "End-to-end Scheduling of Real-time Task Pipelines on Multiprocessors"
 
+##### Soham Sinha, and Richard West
+
+##### Department of Computer Science
+
+##### Boston University, Boston, MA, USA
+
 ### Constraint Solvers
 
 1. `CoPi`: Our heuristic constraint solver algorithm.
 2. `GEKKO`: The APOPT Solver: https://machinelearning.byu.edu/
 
-Most experiments compare the above two. We have also experimented with two other MINLP solvers but only for the first experiment:
+Most experiments compare the above two. We have also experimented with two more MINLP solvers but only for the first experiment:
 
 1. `pyomo`: http://www.pyomo.org/
 2. `scipy`: https://docs.scipy.org/doc/scipy/reference/optimize.html
 
 ### Requirements
 
-Please follow the installation procedure of `GEKKO`, `pyomo`, `scipy`, `pickle` (for reading and writing raw dataset). We have tested the code should work for python version 3.6. If not sure, please use [`virtualenv`](https://virtualenv.pypa.io/en/latest/) to install python 3.6 .
+Please follow the installation procedure of `GEKKO`, `pyomo`, `scipy`, `pickle` (for reading and writing raw dataset), `numpy`, `matplotlib` python packages with `pip`. We have tested the code for python version 3.6. If not sure, please use [`virtualenv`](https://virtualenv.pypa.io/en/latest/) to install python 3.6.
+
+GEKKO: https://gekko.readthedocs.io/en/latest/
+
+pyomo: http://www.pyomo.org/
+
+If some packages are unavailable for your python, you may
+have to download it as well. Please report us.
 
 ### Algorithms and Files
 The CoPi algorithms are at the root location of the source directory.
