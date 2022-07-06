@@ -1,10 +1,12 @@
 # Artifacts of "End-to-end Scheduling of Real-time Task Pipelines on Multiprocessors"
 
 ##### Soham Sinha, and Richard West
+\
+Department of Computer Science
+\
+Boston University, Boston, MA, USA\
 
-##### Department of Computer Science
-
-##### Boston University, Boston, MA, USA
+The artifact is available at https://github.com/sohamm17/pipe_schedule
 
 ### Constraint Solvers
 
