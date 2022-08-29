@@ -4,8 +4,8 @@
 \
 Department of Computer Science
 \
-Boston University, Boston, MA, USA\
-
+Boston University, Boston, MA, USA
+\
 The main paper is available [here](http://dx.doi.org/10.5070/SR32158647).
 
 The artifact is available at https://github.com/sohamm17/pipe_schedule
